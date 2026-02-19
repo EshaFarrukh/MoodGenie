@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1053666873304",
+    "project_id": "moodgenie-4fc46",
+    "storage_bucket": "moodgenie-4fc46.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1053666873304:android:e7d52763ab4635f0f86cad",
+        "android_client_info": {
+          "package_name": "com.example.moodgenie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_vtZ3JVU3CdH2QPkdLQ4VnmLdVASHmmI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
