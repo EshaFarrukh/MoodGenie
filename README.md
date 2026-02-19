@@ -2,8 +2,6 @@
 
 Your AI-powered mental wellness companion. EshaFarrukh/MoodGenie is a Flutter application designed to help users track their moods, gain insights through analytics, chat with a supportive AI, and connect with professional therapists.
 
-![MoodGenie Preview](assets/images/moodgenie_bg.png) 
-
 ## Features
 
 🌟 **Daily Mood Tracking**
