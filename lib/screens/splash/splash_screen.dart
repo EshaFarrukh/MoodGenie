@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moodgenie/src/theme/app_background.dart';
 import '../../src/theme/app_theme.dart';
 
 /// Splash screen with animated MoodGenie gradient logo
@@ -44,10 +45,7 @@ class _SplashScreenState extends State<SplashScreen>
         fit: StackFit.expand,
         children: [
           // Background — same as the app
-          Image.asset(
-            'assets/images/moodgenie_bg.png',
-            fit: BoxFit.cover,
-          ),
+          const AppBackground(),
 
           // Semi-transparent overlay for better contrast
           Container(
@@ -67,10 +65,10 @@ class _SplashScreenState extends State<SplashScreen>
                     ShaderMask(
                       shaderCallback: (bounds) => const LinearGradient(
                         colors: [
-                          AppColors.purple,
+                          AppColors.primary,
                           Color(0xFFB87FD8),
                           Color(0xFFD87FB8),
-                          AppColors.accentOrange,
+                          AppColors.accentCyan,
                           Color(0xFFFFB366),
                         ],
                         begin: Alignment.centerLeft,
@@ -110,9 +108,9 @@ class _SplashScreenState extends State<SplashScreen>
                       height: 28,
                       child: CircularProgressIndicator(
                         valueColor:
-                            const AlwaysStoppedAnimation<Color>(AppColors.purple),
+                            const AlwaysStoppedAnimation<Color>(AppColors.primary),
                         strokeWidth: 2.5,
-                        backgroundColor: AppColors.purple.withOpacity(0.15),
+                        backgroundColor: AppColors.primary.withOpacity(0.15),
                       ),
                     ),
                   ],
@@ -133,10 +131,10 @@ class _CurvedUnderlinePainter extends CustomPainter {
     final paint = Paint()
       ..shader = const LinearGradient(
         colors: [
-          AppColors.purple,
+          AppColors.primary,
           Color(0xFFB87FD8),
           Color(0xFFD87FB8),
-          AppColors.accentOrange,
+          AppColors.accentCyan,
           Color(0xFFFFB366),
         ],
         begin: Alignment.centerLeft,

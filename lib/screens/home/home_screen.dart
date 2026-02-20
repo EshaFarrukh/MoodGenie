@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:moodgenie/screens/home/widgets/nav_bar_item.dart';
 import 'package:moodgenie/screens/home/pages/home_dashboard_page.dart';
@@ -32,10 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Background image fills the whole screen
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: const AppBackground(),
           ),
 
           // Page content

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:moodgenie/src/theme/app_background.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -178,14 +179,9 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
                 ),
               ),
             ),
-             // Background image overlay
-            Positioned.fill(
-              child: Image.asset(
-                'assets/images/moodgenie_bg.png',
-                fit: BoxFit.cover,
-                color: Colors.white.withOpacity(0.2),
-                colorBlendMode: BlendMode.overlay,
-              ),
+            // Background image overlay
+            const Positioned.fill(
+              child: AppBackground(),
             ),
             SafeArea(
               child: Column(
@@ -259,13 +255,8 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
           ),
 
           // Background image overlay
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-              color: Colors.white.withOpacity(0.2),
-              colorBlendMode: BlendMode.overlay,
-            ),
+          const Positioned.fill(
+            child: AppBackground(),
           ),
 
           // Content
@@ -306,7 +297,7 @@ class _ProfessionalSupportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      gradientColors: [AppColors.purpleLight, Colors.white],
+      gradientColors: [AppColors.primaryLight, Colors.white],
       child: Row(
         children: [
           Container(
@@ -315,7 +306,7 @@ class _ProfessionalSupportCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               gradient: const LinearGradient(
-                colors: [AppColors.purple, AppColors.accentOrange],
+                colors: [AppColors.primary, AppColors.accentCyan],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -368,7 +359,7 @@ class _TherapistsSection extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.all(24),
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.purple),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
             ),
           );
@@ -408,7 +399,7 @@ class _TherapistsSection extends StatelessWidget {
                     icon: const Icon(Icons.add),
                     label: const Text('Add sample therapists'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentOrange,
+                      backgroundColor: AppColors.accentCyan,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
@@ -489,12 +480,12 @@ class _TherapistCard extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 22,
-            backgroundColor: AppColors.pillLilac,
+            backgroundColor: AppColors.pillCyan,
             child: Text(
               therapist.initials,
               style: const TextStyle(
                 fontWeight: FontWeight.w800,
-                color: AppColors.purple,
+                color: AppColors.primary,
               ),
             ),
           ),
@@ -514,7 +505,7 @@ class _TherapistCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Icon(Icons.star_rounded, size: 18, color: AppColors.accentOrange),
+                    const Icon(Icons.star_rounded, size: 18, color: AppColors.accentCyan),
                     const SizedBox(width: 2),
                     Text(
                       therapist.rating.toStringAsFixed(1),
@@ -553,7 +544,7 @@ class _TherapistCard extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentOrange,
+                      backgroundColor: AppColors.accentCyan,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
@@ -599,14 +590,14 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.pillLilac,
+        color: AppColors.pillCyan,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.purple.withOpacity(0.08)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.08)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: iconColor ?? AppColors.purple),
+          Icon(icon, size: 16, color: iconColor ?? AppColors.primary),
           const SizedBox(width: 6),
           Text(text, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
         ],
@@ -621,7 +612,7 @@ class _ImmediateHelpCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      gradientColors: [Colors.white, AppColors.purpleLight],
+      gradientColors: [Colors.white, AppColors.primaryLight],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -686,7 +677,7 @@ class _ImmediateHelpCard extends StatelessWidget {
                     backgroundColor: Colors.white.withOpacity(0.3),
                     foregroundColor: AppColors.textPrimary,
                     side: BorderSide(
-                      color: AppColors.purple.withOpacity(0.6),
+                      color: AppColors.primary.withOpacity(0.6),
                       width: 2,
                     ),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -839,7 +830,7 @@ class _CustomHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.purple),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.primary),
               ),
             )
           else
@@ -873,7 +864,7 @@ class _CustomHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.refresh_rounded, size: 20, color: AppColors.accentOrange),
+                child: const Icon(Icons.refresh_rounded, size: 20, color: AppColors.accentCyan),
               ),
             )
           else

@@ -15,6 +15,7 @@
 // 3) assets/icons/google.svg
 
 import 'dart:ui';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,6 +27,7 @@ import '../../src/auth/services/auth_service.dart';
 import '../../src/auth/widgets/auth_widgets.dart';
 import 'package:moodgenie/screens/auth/signup_screen.dart';
 import 'package:moodgenie/screens/auth/therapist_signup_screen.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -75,10 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           // Background image (full screen)
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/login_bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: const AppBackground(),
           ),
 
           // Soft overlay tint to match screenshot glow
@@ -313,7 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: const Text(
                                 'Sign up',
                                 style: TextStyle(
-                                  color: Color(0xFF6B5CFF),
+                                  color: AppColors.primaryDeep,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),

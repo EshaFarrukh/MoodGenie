@@ -1,45 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 // ─── Design Tokens ───────────────────────────────────────────────
 
 class AppColors {
   AppColors._();
 
-  // Brand — Primary
-  static const Color purple       = Color(0xFF8B7FD8);
-  static const Color purpleDeep   = Color(0xFF6B5CFF);
-  static const Color purpleMid    = Color(0xFF7B6FD8);
-  static const Color purpleLight  = Color(0xFFF4EEFF);
-  static const Color purpleSoft   = Color(0xFF9B8FD8);
-  static const Color purpleFaint  = Color(0xFFE5DEFF);
+  // Brand — Primary (Oceanic Blue)
+  static const Color primary       = Color(0xFF0066CC); // Vibrant Blue
+  static const Color primaryDeep   = Color(0xFF003B73); // Deep Navy
+  static const Color primaryMid    = Color(0xFF3D8BFD); // Mid Blue
+  static const Color primaryLight  = Color(0xFFEAF6FB); // Light Cyan Background
+  static const Color primarySoft   = Color(0xFFBDE4F4); // Soft Cyan Gradient
+  static const Color primaryFaint  = Color(0xFFF1F8FE); // Faint Blue Cards
 
   // Brand — Accent
-  static const Color accentOrange   = Color(0xFFFF9966);
-  static const Color accentWarm     = Color(0xFFFF8E58);
-  static const Color accentPeach    = Color(0xFFFFB06A);
+  static const Color accentCyan     = Color(0xFF00B4D8); // Bright Cyan Accent
+  static const Color accentSoft     = Color(0xFF48CAE4); // Secondary Soft Cyan
+  static const Color accentBright   = Color(0xFF90E0EF); // Very Light Cyan
 
   // Text
-  static const Color headingDark  = Color(0xFF2D2545);
-  static const Color textPrimary  = Color(0xFF374151);
-  static const Color textSecondary= Color(0xFF6B7280);
-  static const Color bodyMuted    = Color(0xFF6D6689);
-  static const Color captionLight = Color(0xFF8A7F92);
+  static const Color headingDark  = Color(0xFF002B5B); // Very Dark Navy for Text
+  static const Color textPrimary  = Color(0xFF334155); // Slate 700
+  static const Color textSecondary= Color(0xFF64748B); // Slate 500
+  static const Color bodyMuted    = Color(0xFF475569); // Slate 600
+  static const Color captionLight = Color(0xFF94A3B8); // Slate 400
 
   // Surface / Cards
-  static const Color cardWhite    = Color(0xFFFFFFFE);
-  static const Color surfaceLight = Color(0xFFFDF5FF);
-  static const Color surfaceWarm  = Color(0xFFFFF5EA);
+  static const Color cardWhite    = Color(0xFFFFFFFF);
+  static const Color surfaceLight = Color(0xFFF8FAFC);
+  static const Color surfaceWarm  = Color(0xFFF1F5F9);
 
   // Semantic
-  static const Color success      = Color(0xFF4CAF50);
-  static const Color error        = Color(0xFFFF5252);
-  static const Color errorSoft    = Color(0xFFFF6B6B);
-  static const Color warning      = Color(0xFFFFA726);
+  static const Color success      = Color(0xFF10B981);
+  static const Color error        = Color(0xFFEF4444);
+  static const Color errorSoft    = Color(0xFFF87171);
+  static const Color warning      = Color(0xFFF59E0B);
 
   // Nav
-  static const Color pillLilac    = Color(0xFFF2EEFF);
-  static const Color navUnselected= Color(0xFFB0B0C3);
+  static const Color pillCyan     = Color(0xFFE0F2FE); // Light Sky Blue for pills
+  static const Color navUnselected= Color(0xFF94A3B8);
 }
 
 class AppRadius {
@@ -63,7 +64,7 @@ class AppShadows {
 
   static List<BoxShadow> card({Color? color}) => [
         BoxShadow(
-          color: (color ?? AppColors.purple).withOpacity(0.12),
+          color: (color ?? AppColors.primary).withOpacity(0.12),
           blurRadius: 20,
           offset: const Offset(0, 4),
         ),
@@ -123,9 +124,9 @@ class AppTheme {
     return base.copyWith(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.purple,
-        primary: AppColors.purple,
-        secondary: AppColors.accentOrange,
+        seedColor: AppColors.primary,
+        primary: AppColors.primary,
+        secondary: AppColors.accentCyan,
       ),
       textTheme: textTheme,
       scaffoldBackgroundColor: Colors.transparent,
@@ -133,11 +134,11 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         titleTextStyle: appBarTitleStyle,
-        iconTheme: const IconThemeData(color: AppColors.purple),
+        iconTheme: const IconThemeData(color: AppColors.primary),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
-        selectedItemColor: AppColors.accentOrange,
+        selectedItemColor: AppColors.accentCyan,
         unselectedItemColor: AppColors.navUnselected,
         showUnselectedLabels: true,
       ),

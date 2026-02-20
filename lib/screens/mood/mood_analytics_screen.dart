@@ -1,9 +1,11 @@
 // lib/screens/mood/mood_analytics_screen.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 class MoodAnalyticsScreen extends StatefulWidget {
   const MoodAnalyticsScreen({super.key});
@@ -124,10 +126,7 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
         children: [
           // Background image
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: const AppBackground(),
           ),
           // Content
           FutureBuilder<Map<String, dynamic>>(
@@ -136,7 +135,7 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SafeArea(
               child: Center(
-                child: CircularProgressIndicator(color: Color(0xFF8B7FD8)),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             );
           }
@@ -212,12 +211,12 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF8B7FD8), Color(0xFF6B5CFF)],
+          colors: [AppColors.primary, AppColors.primaryDeep],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.4),
+            color: AppColors.primary.withOpacity(0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -334,11 +333,11 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
 
     final colors = [
       const Color(0xFF9B8FD8),
-      const Color(0xFF8B7FD8),
+      AppColors.primary,
       const Color(0xFFAB9FE8),
       const Color(0xFF7B6FD8),
-      const Color(0xFF8B7FD8),
-      const Color(0xFF6B5CFF),
+      AppColors.primary,
+      AppColors.primaryDeep,
       const Color(0xFF9B8FE8),
     ];
 
@@ -363,7 +362,7 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.12),
+            color: AppColors.primary.withOpacity(0.12),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -394,13 +393,13 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFF8B7FD8).withOpacity(0.2),
-                      const Color(0xFF6B5CFF).withOpacity(0.15),
+                      AppColors.primary.withOpacity(0.2),
+                      AppColors.primaryDeep.withOpacity(0.15),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: const Color(0xFF8B7FD8).withOpacity(0.3),
+                    color: AppColors.primary.withOpacity(0.3),
                     width: 1,
                   ),
                 ),
@@ -409,7 +408,7 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF6B5CFF),
+                    color: AppColors.primaryDeep,
                   ),
                 ),
               ),
@@ -426,13 +425,13 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF8B7FD8).withOpacity(0.04),
+                  AppColors.primary.withOpacity(0.04),
                   const Color(0xFFFF8A5C).withOpacity(0.03),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFF8B7FD8).withOpacity(0.15),
+                color: AppColors.primary.withOpacity(0.15),
                 width: 1.5,
               ),
             ),
@@ -460,9 +459,9 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
             children: [
               _buildLegendItem('Low', const Color(0xFF9B8FD8)),
               const SizedBox(width: 16),
-              _buildLegendItem('Medium', const Color(0xFF8B7FD8)),
+              _buildLegendItem('Medium', AppColors.primary),
               const SizedBox(width: 16),
-              _buildLegendItem('High', const Color(0xFF6B5CFF)),
+              _buildLegendItem('High', AppColors.primaryDeep),
             ],
           ),
         ],
@@ -639,8 +638,8 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
     };
 
     final moodColors = {
-      'happy': const Color(0xFF6B5CFF),
-      'excited': const Color(0xFF8B7FD8),
+      'happy': AppColors.primaryDeep,
+      'excited': AppColors.primary,
       'calm': const Color(0xFF9B8FD8),
       'sad': const Color(0xFFB8ACFF),
       'anxious': const Color(0xFFD8A6FF),
@@ -668,7 +667,7 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -762,7 +761,7 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -805,7 +804,7 @@ class _MoodAnalyticsScreenState extends State<MoodAnalyticsScreen> {
             height: 6,
             margin: const EdgeInsets.only(top: 6),
             decoration: const BoxDecoration(
-              color: Color(0xFF8B7FD8),
+              color: AppColors.primary,
               shape: BoxShape.circle,
             ),
           ),

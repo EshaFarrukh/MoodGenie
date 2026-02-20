@@ -48,3 +48,11 @@ app.*.map.json
 /SRS/
 /Proposal/
 FYP Registration Form - SE.pdf
+
+# Environment configuration
+.env
+backend/.env
+*.py
+build_log*.txt
+backend/node_modules/
+backend/server.pid

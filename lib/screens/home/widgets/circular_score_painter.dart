@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 class CircularScorePainter extends CustomPainter {
   final double score;
@@ -31,8 +32,8 @@ class CircularScorePainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          const Color(0xFF8B7FD8).withOpacity(0.6),
-          const Color(0xFF6B5CFF).withOpacity(0.6),
+          AppColors.primary.withOpacity(0.6),
+          AppColors.primaryDeep.withOpacity(0.6),
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.stroke
@@ -51,8 +52,8 @@ class CircularScorePainter extends CustomPainter {
     final progressPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          const Color(0xFF8B7FD8),
-          const Color(0xFF6B5CFF),
+          AppColors.primary,
+          AppColors.primaryDeep,
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

@@ -1,203 +1,150 @@
 import 'package:flutter/material.dart';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../src/theme/app_theme.dart';
 import '../../src/auth/services/auth_service.dart';
+import '../../controllers/therapist_controller.dart';
+import '../../models/session_model.dart';
+import '../../src/auth/models/user_model.dart';
+import 'therapist_user_detail_screen.dart';
+import 'session_management_screen.dart';
 
 class TherapistDashboardScreen extends StatelessWidget {
   const TherapistDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => TherapistController(),
+      child: const _TherapistDashboardContent(),
+    );
+  }
+}
+
+class _TherapistDashboardContent extends StatelessWidget {
+  const _TherapistDashboardContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.watch<TherapistController>();
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background with app theme gradient
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFFF4EEFF), // Purple light
-                    Color(0xFFFFF7EE), // Orange light
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Background image overlay
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-              color: Colors.white.withOpacity(0.3),
-              colorBlendMode: BlendMode.overlay,
-            ),
-          ),
-
-          // Content
+          const AppBackground(),
           SafeArea(
             child: CustomScrollView(
               slivers: [
-                // App Bar
-                SliverAppBar(
-                  expandedHeight: 120,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  pinned: true,
-                  flexibleSpace: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.purple.withOpacity(0.1),
-                          AppColors.accentOrange.withOpacity(0.1),
-                        ],
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(30),
-                        bottomRight: Radius.circular(30),
-                      ),
-                    ),
-                    child: FlexibleSpaceBar(
-                      title: Text(
-                        'Therapist Dashboard',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                        ),
-                      ),
-                      centerTitle: true,
-                    ),
-                  ),
-                  actions: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.purple.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        onPressed: () async {
-                          final authService = context.read<AuthService>();
-                          await authService.signOut();
-                        },
-                        icon: Icon(
-                          Icons.logout_rounded,
-                          color: AppColors.purple,
-                          size: 20,
-                        ),
-                        tooltip: 'Sign Out',
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Content
+                _buildAppBar(context),
                 SliverPadding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      // Welcome message with user info
-                      Consumer<AuthService>(
-                        builder: (context, authService, child) {
-                          final user = authService.currentUser;
-                          return _buildWelcomeCard(user?.name ?? 'Therapist');
-                        },
-                      ),
-
+                      _buildWelcomeCard(context),
                       const SizedBox(height: 24),
-
-                      // Status Card
-                      _buildStatusCard(),
-
+                      if (controller.error != null) _buildErrorBanner(controller.error!),
+                      _buildPendingRequestsSection(context, controller),
                       const SizedBox(height: 24),
-
-                      // Quick Actions
-                      _buildQuickActionsSection(),
-
+                      _buildTodaySessionsSection(context, controller),
                       const SizedBox(height: 24),
-
-                      // Statistics Cards
-                      _buildStatisticsRow(),
-
-                      const SizedBox(height: 100), // Bottom padding for scroll
+                      _buildAssignedUsersSection(context, controller),
+                      const SizedBox(height: 100),
                     ]),
                   ),
                 ),
               ],
             ),
           ),
+          if (controller.isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildWelcomeCard(String name) {
+  Widget _buildErrorBanner(String error) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red),
+          const SizedBox(width: 8),
+          Expanded(child: Text(error, style: const TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+  }
+
+  SliverAppBar _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 80,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      pinned: true,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(30),
+            bottomRight: Radius.circular(30),
+          ),
+          boxShadow: AppShadows.soft(),
+        ),
+        child: FlexibleSpaceBar(
+          title: const Text(
+            'Doctor Dashboard',
+            style: TextStyle(
+              color: AppColors.headingDark,
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+            ),
+          ),
+          centerTitle: true,
+        ),
+      ),
+      actions: [
+        IconButton(
+          onPressed: () async {
+            await context.read<AuthService>().signOut();
+          },
+          icon: const Icon(Icons.logout_rounded, color: AppColors.primary),
+          tooltip: 'Sign Out',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeCard(BuildContext context) {
+    final user = context.watch<AuthService>().currentUser;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.purple.withOpacity(0.1),
-            AppColors.accentOrange.withOpacity(0.05),
-          ],
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.purple.withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.purple.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppShadows.card(),
       ),
       child: Row(
         children: [
-          Container(
-            height: 60,
-            width: 60,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.purple,
-                  AppColors.accentOrange,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.purple.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.psychology_outlined,
-              color: Colors.white,
-              size: 28,
-            ),
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: const Icon(Icons.medical_services, color: Colors.white, size: 30),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -205,28 +152,19 @@ class TherapistDashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Welcome back,',
+                  'Welcome, Dr. ${user?.name?.split(' ').first ?? 'Therapist'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'You have a busy day ahead!',
                   style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
                     fontSize: 14,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Dr. $name',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Your practice dashboard',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -237,359 +175,202 @@ class TherapistDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.accentOrange.withOpacity(0.1),
-            AppColors.accentOrange.withOpacity(0.05),
+  Widget _buildPendingRequestsSection(BuildContext context, TherapistController controller) {
+    return StreamBuilder<List<SessionModel>>(
+      stream: controller.pendingRequests,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink(); // Hide if empty
+        }
+        final requests = snapshot.data!;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('Pending Approvals', Icons.notifications_active),
+            const SizedBox(height: 12),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: requests.length,
+              itemBuilder: (context, index) {
+                final session = requests[index];
+                return _buildPendingTile(context, session);
+              },
+            ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPendingTile(BuildContext context, SessionModel session) {
+    final timeStr = DateFormat('MMM d, h:mm a').format(session.scheduledAt);
+    return Card(
+      elevation: 0,
+      color: Colors.white.withOpacity(0.8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: const CircleAvatar(
+          backgroundColor: AppColors.accentSoft,
+          child: const Icon(Icons.person, color: AppColors.primaryDeep),
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.accentOrange.withOpacity(0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accentOrange.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        title: Text('Booking Request', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.headingDark)),
+        subtitle: Text(timeStr),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.primary),
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => SessionManagementScreen(session: session),
+          ));
+        },
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    );
+  }
+
+  Widget _buildTodaySessionsSection(BuildContext context, TherapistController controller) {
+    return StreamBuilder<List<SessionModel>>(
+      stream: controller.todaySessions,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+        }
+
+        final sessions = snapshot.data ?? [];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('Today\'s Schedule', Icons.calendar_today),
+            const SizedBox(height: 12),
+            if (sessions.isEmpty)
+              _buildEmptyState('No sessions scheduled for today yet!')
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: sessions.length,
+                itemBuilder: (context, index) {
+                  return _buildSessionTile(context, sessions[index]);
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSessionTile(BuildContext context, SessionModel session) {
+    final timeStr = DateFormat('h:mm a').format(session.scheduledAt);
+    return Card(
+      elevation: 0,
+      color: Colors.white.withOpacity(0.9),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppColors.primary.withOpacity(0.2))),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                  color: AppColors.accentOrange,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accentOrange.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.pending_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Account Under Review',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Professional verification in progress',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              Text(DateFormat('h:mm').format(session.scheduledAt), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+              Text(DateFormat('a').format(session.scheduledAt), style: const TextStyle(fontSize: 10, color: AppColors.primary)),
             ],
           ),
-
-          const SizedBox(height: 20),
-
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.accentOrange.withOpacity(0.2),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: AppColors.purple,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'What happens next?',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '• Our team will verify your professional credentials\n'
-                  '• You\'ll receive an email notification once approved\n'
-                  '• Complete your profile and start accepting clients\n'
-                  '• Set up your availability and pricing',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
+        title: const Text('Confirmed Session', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.headingDark)),
+        subtitle: const Text('Click to manage or start call.', style: TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.video_call, color: AppColors.accentCyan, size: 30),
+        onTap: () {
+           Navigator.push(context, MaterialPageRoute(
+            builder: (_) => SessionManagementScreen(session: session),
+          ));
+        },
       ),
     );
   }
 
-  Widget _buildQuickActionsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Actions',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.1,
+  Widget _buildAssignedUsersSection(BuildContext context, TherapistController controller) {
+    return StreamBuilder<List<AppUser>>(
+      stream: controller.assignedUsers,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
+        
+        final users = snapshot.data ?? [];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildActionCard(
-              icon: Icons.calendar_today_outlined,
-              title: 'Appointments',
-              subtitle: 'View schedule',
-              colors: [AppColors.purple, AppColors.purple.withOpacity(0.7)],
-            ),
-            _buildActionCard(
-              icon: Icons.people_outline,
-              title: 'Clients',
-              subtitle: 'Manage clients',
-              colors: [AppColors.accentOrange, AppColors.accentOrange.withOpacity(0.7)],
-            ),
-            _buildActionCard(
-              icon: Icons.person_outline,
-              title: 'Profile',
-              subtitle: 'Edit profile',
-              colors: [AppColors.purple, AppColors.accentOrange],
-            ),
-            _buildActionCard(
-              icon: Icons.settings_outlined,
-              title: 'Settings',
-              subtitle: 'Preferences',
-              colors: [AppColors.accentOrange, AppColors.purple],
-            ),
+            _buildSectionHeader('Your Patients', Icons.people_alt),
+            const SizedBox(height: 12),
+            if (users.isEmpty)
+              _buildEmptyState('No patients assigned yet.')
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  final u = users[index];
+                  return Card(
+                    elevation: 0,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading: const CircleAvatar(backgroundColor: AppColors.primaryFaint, child: Icon(Icons.person, color: AppColors.primary)),
+                      title: Text(u.name ?? 'Anonymous User', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(u.email, style: const TextStyle(fontSize: 12)),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                      onTap: () {
+                         Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => TherapistUserDetailScreen(user: u),
+                        ));
+                      },
+                    ),
+                  );
+                },
+              ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildActionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required List<Color> colors,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors.map((color) => color.withOpacity(0.1)).toList(),
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.first.withOpacity(0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.first.withOpacity(0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: colors,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.first.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Coming Soon',
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatisticsRow() {
+  Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Expanded(
-          child: _buildStatCard(
-            title: 'Total Sessions',
-            value: '0',
-            subtitle: 'This month',
-            gradient: [AppColors.purple, AppColors.purple.withOpacity(0.7)],
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            title: 'Rating',
-            value: '5.0',
-            subtitle: 'Average',
-            gradient: [AppColors.accentOrange, AppColors.accentOrange.withOpacity(0.7)],
+        Icon(icon, color: AppColors.primaryDeep, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.headingDark,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required List<Color> gradient,
-  }) {
+  Widget _buildEmptyState(String message) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient.map((color) => color.withOpacity(0.1)).toList(),
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: gradient.first.withOpacity(0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: gradient.first.withOpacity(0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: Colors.white.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: gradient.first,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+      child: Center(
+        child: Text(
+          message,
+          style: const TextStyle(color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+        ),
       ),
     );
   }

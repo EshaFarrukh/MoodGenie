@@ -55,7 +55,7 @@ class MoodTabPage extends StatelessWidget {
                           colors: [Color(0xFFFFB06A), Color(0xFFFF7F72)],
                         ),
                         borderRadius: BorderRadius.circular(AppRadius.s),
-                        boxShadow: AppShadows.glow(AppColors.accentWarm),
+                        boxShadow: AppShadows.glow(AppColors.accentSoft),
                       ),
                       child: const Icon(
                         Icons.edit_note_rounded,
@@ -100,7 +100,7 @@ class MoodTabPage extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentWarm,
+                      backgroundColor: AppColors.accentSoft,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -136,7 +136,7 @@ class MoodTabPage extends StatelessWidget {
               Expanded(
                 child: _QuickActionCard(
                   icon: Icons.insights_rounded,
-                  iconGradient: const [AppColors.purple, AppColors.purpleDeep],
+                  iconGradient: const [AppColors.primary, AppColors.primaryDeep],
                   title: 'Analytics',
                   subtitle: 'Trends & patterns',
                   onTap: () {
@@ -174,12 +174,12 @@ class MoodTabPage extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.purpleDeep.withOpacity(0.12),
+                    color: AppColors.primaryDeep.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.tips_and_updates_rounded,
-                    color: AppColors.purpleDeep,
+                    color: AppColors.primaryDeep,
                     size: 24,
                   ),
                 ),

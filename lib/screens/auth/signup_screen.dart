@@ -24,6 +24,7 @@
 //   flutter_svg: ^2.0.10
 
 import 'dart:ui';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,6 +34,7 @@ import '../../src/auth/services/auth_service.dart';
 import '../../src/auth/models/user_model.dart';
 import '../../src/auth/models/auth_models.dart';
 import '../../src/auth/widgets/auth_widgets.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 
 class SignUpScreen extends StatefulWidget {
@@ -118,10 +120,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         children: [
           // Background image (full screen)
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/login_bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: const AppBackground(),
           ),
 
           // Soft overlay tint to match screenshot glow
@@ -383,7 +382,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: const Text(
                                 'Log in',
                                 style: TextStyle(
-                                  color: Color(0xFF6B5CFF),
+                                  color: AppColors.primaryDeep,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),

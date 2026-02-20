@@ -134,7 +134,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
               children: [
                 ShaderMask(
                   shaderCallback: (bounds) => const LinearGradient(
-                    colors: [AppColors.purple, AppColors.accentOrange],
+                    colors: [AppColors.primary, AppColors.accentCyan],
                   ).createShader(bounds),
                   child: const Text(
                     'MoodGenie',
@@ -170,11 +170,11 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
-                    colors: [AppColors.purple, AppColors.purpleDeep],
+                    colors: [AppColors.primary, AppColors.primaryDeep],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  boxShadow: AppShadows.glow(AppColors.purpleDeep),
+                  boxShadow: AppShadows.glow(AppColors.primaryDeep),
                 ),
                 child: const Icon(Icons.person_rounded, size: 40, color: Colors.white),
               ),
@@ -187,7 +187,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.accentWarm,
+                      color: AppColors.accentSoft,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                       boxShadow: AppShadows.soft(),
@@ -249,7 +249,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
       children: [
         Expanded(child: _StatCard(icon: Icons.local_fire_department_rounded, iconColor: const Color(0xFFFF6B35), value: '$_streak', label: 'Day Streak')),
         const SizedBox(width: 10),
-        Expanded(child: _StatCard(icon: Icons.mood_rounded, iconColor: AppColors.purpleDeep, value: '$_totalMoods', label: 'Moods Logged')),
+        Expanded(child: _StatCard(icon: Icons.mood_rounded, iconColor: AppColors.primaryDeep, value: '$_totalMoods', label: 'Moods Logged')),
         const SizedBox(width: 10),
         Expanded(child: _StatCard(icon: Icons.calendar_today_rounded, iconColor: const Color(0xFF0288D1), value: '$_daysActive', label: 'Days Active')),
       ],
@@ -272,7 +272,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
       ),
       _settingsDivider(),
       _ToggleSettingItem(
-        icon: Icons.notifications_active_rounded, iconBg: const [AppColors.accentOrange, Color(0xFFFF7043)],
+        icon: Icons.notifications_active_rounded, iconBg: const [AppColors.accentCyan, Color(0xFFFF7043)],
         title: 'Daily Reminders', subtitle: 'Get reminded to log your mood',
         value: _reminders,
         onChanged: (v) {
@@ -299,7 +299,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
         trailing: Container(
           width: 24, height: 24,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [AppColors.purple, AppColors.purpleDeep]),
+            gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDeep]),
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: AppShadows.soft(),
@@ -321,7 +321,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
   Widget _buildAccountSection() {
     return _SettingsGroup(children: [
       _TapSettingItem(
-        icon: Icons.person_outline_rounded, iconBg: const [AppColors.purple, AppColors.purpleDeep],
+        icon: Icons.person_outline_rounded, iconBg: const [AppColors.primary, AppColors.primaryDeep],
         title: 'Edit Profile', subtitle: 'Update your personal info',
         onTap: _showEditProfile,
       ),
@@ -370,7 +370,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
       ),
       _settingsDivider(),
       _TapSettingItem(
-        icon: Icons.share_rounded, iconBg: const [AppColors.accentOrange, Color(0xFFFF7043)],
+        icon: Icons.share_rounded, iconBg: const [AppColors.accentCyan, Color(0xFFFF7043)],
         title: 'Share with Friends', subtitle: 'Spread the wellness',
         onTap: () => _showComingSoon('Share feature requires share_plus package'),
       ),
@@ -460,11 +460,11 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                 decoration: InputDecoration(
                   labelText: 'Display Name',
                   hintText: 'Enter your name',
-                  prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.purple),
+                  prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.primary),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.purpleDeep, width: 2),
+                    borderSide: const BorderSide(color: AppColors.primaryDeep, width: 2),
                   ),
                 ),
               ),
@@ -493,7 +493,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.purpleDeep,
+                    backgroundColor: AppColors.primaryDeep,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -548,13 +548,13 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                   obscureText: obscureCurrent,
                   decoration: InputDecoration(
                     labelText: 'Current Password',
-                    prefixIcon: const Icon(Icons.lock_outline, color: AppColors.purple),
+                    prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
                     suffixIcon: IconButton(
                       icon: Icon(obscureCurrent ? Icons.visibility_off : Icons.visibility, color: AppColors.captionLight),
                       onPressed: () => setSheetState(() => obscureCurrent = !obscureCurrent),
                     ),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.purpleDeep, width: 2)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primaryDeep, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -563,13 +563,13 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                   obscureText: obscureNew,
                   decoration: InputDecoration(
                     labelText: 'New Password',
-                    prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.purple),
+                    prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.primary),
                     suffixIcon: IconButton(
                       icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility, color: AppColors.captionLight),
                       onPressed: () => setSheetState(() => obscureNew = !obscureNew),
                     ),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.purpleDeep, width: 2)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primaryDeep, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -578,9 +578,9 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                   obscureText: obscureNew,
                   decoration: InputDecoration(
                     labelText: 'Confirm New Password',
-                    prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.purple),
+                    prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.primary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.purpleDeep, width: 2)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primaryDeep, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -612,7 +612,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.purpleDeep, foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primaryDeep, foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
@@ -684,7 +684,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.purpleDeep, foregroundColor: Colors.white,
+                backgroundColor: AppColors.primaryDeep, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
@@ -915,7 +915,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.purpleDeep, width: 2),
+                    borderSide: const BorderSide(color: AppColors.primaryDeep, width: 2),
                   ),
                 ),
               ),
@@ -945,7 +945,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.purpleDeep, foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primaryDeep, foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
@@ -1013,7 +1013,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
   }
 
   Widget _settingsDivider() {
-    return Divider(height: 1, thickness: 0.5, color: AppColors.purpleFaint.withOpacity(0.6), indent: 60, endIndent: 16);
+    return Divider(height: 1, thickness: 0.5, color: AppColors.primaryFaint.withOpacity(0.6), indent: 60, endIndent: 16);
   }
 
   Widget _buildSectionLabel(String text) {
@@ -1045,9 +1045,9 @@ class _FaqItemState extends State<_FaqItem> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: _expanded ? AppColors.purpleLight : const Color(0xFFF8F6FF),
+        color: _expanded ? AppColors.primaryLight : const Color(0xFFF8F6FF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _expanded ? AppColors.purpleFaint : Colors.transparent),
+        border: Border.all(color: _expanded ? AppColors.primaryFaint : Colors.transparent),
       ),
       child: Material(
         color: Colors.transparent,
@@ -1066,14 +1066,14 @@ class _FaqItemState extends State<_FaqItem> {
                         widget.question,
                         style: TextStyle(
                           fontSize: 15, fontWeight: FontWeight.w700,
-                          color: _expanded ? AppColors.purpleDeep : AppColors.headingDark,
+                          color: _expanded ? AppColors.primaryDeep : AppColors.headingDark,
                         ),
                       ),
                     ),
                     AnimatedRotation(
                       turns: _expanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 200),
-                      child: Icon(Icons.keyboard_arrow_down_rounded, color: _expanded ? AppColors.purpleDeep : AppColors.captionLight),
+                      child: Icon(Icons.keyboard_arrow_down_rounded, color: _expanded ? AppColors.primaryDeep : AppColors.captionLight),
                     ),
                   ],
                 ),
@@ -1179,7 +1179,7 @@ class _ToggleSettingItem extends StatelessWidget {
           ),
           Transform.scale(
             scale: 0.85,
-            child: Switch.adaptive(value: value, onChanged: onChanged, activeColor: AppColors.purpleDeep),
+            child: Switch.adaptive(value: value, onChanged: onChanged, activeColor: AppColors.primaryDeep),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moodgenie/src/theme/app_background.dart';
 import '../../../src/theme/app_theme.dart';
 
 class TermsPrivacyPage extends StatelessWidget {
@@ -11,12 +12,8 @@ class TermsPrivacyPage extends StatelessWidget {
       body: Stack(
         children: [
           // Background
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-              opacity: const AlwaysStoppedAnimation(0.3),
-            ),
+          const Positioned.fill(
+            child: AppBackground(),
           ),
           SafeArea(
             child: Column(
@@ -154,7 +151,7 @@ We encourage you to use MoodGenie alongside professional support, not as a repla
                   height: 40,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [AppColors.purple, AppColors.purpleDeep],
+                      colors: [AppColors.primary, AppColors.primaryDeep],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -190,7 +187,7 @@ We encourage you to use MoodGenie alongside professional support, not as a repla
             const SizedBox(height: 16),
             Divider(
               height: 1,
-              color: AppColors.purpleFaint.withOpacity(0.5),
+              color: AppColors.primaryFaint.withOpacity(0.5),
             ),
             const SizedBox(height: 16),
             Text(

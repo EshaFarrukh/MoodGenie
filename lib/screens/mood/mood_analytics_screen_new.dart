@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 class MoodAnalyticsScreen extends StatelessWidget {
   const MoodAnalyticsScreen({super.key});
@@ -98,7 +99,7 @@ class MoodAnalyticsScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF8B7FD8)),
+              child: CircularProgressIndicator(color: AppColors.primary),
             );
           }
 
@@ -167,12 +168,12 @@ class MoodAnalyticsScreen extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF8B7FD8), Color(0xFF6B5CFF)],
+          colors: [AppColors.primary, AppColors.primaryDeep],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.4),
+            color: AppColors.primary.withOpacity(0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -289,11 +290,11 @@ class MoodAnalyticsScreen extends StatelessWidget {
 
     final colors = [
       const Color(0xFF9B8FD8),
-      const Color(0xFF8B7FD8),
+      AppColors.primary,
       const Color(0xFF9B8FD8),
       const Color(0xFF7B6FD8),
-      const Color(0xFF8B7FD8),
-      const Color(0xFF6B5CFF),
+      AppColors.primary,
+      AppColors.primaryDeep,
       const Color(0xFF7B6FD8),
     ];
 
@@ -313,7 +314,7 @@ class MoodAnalyticsScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -396,8 +397,8 @@ class MoodAnalyticsScreen extends StatelessWidget {
     };
 
     final moodColors = {
-      'happy': const Color(0xFF6B5CFF),
-      'excited': const Color(0xFF8B7FD8),
+      'happy': AppColors.primaryDeep,
+      'excited': AppColors.primary,
       'calm': const Color(0xFF9B8FD8),
       'sad': const Color(0xFFB8ACFF),
       'anxious': const Color(0xFFD8A6FF),
@@ -425,7 +426,7 @@ class MoodAnalyticsScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -519,7 +520,7 @@ class MoodAnalyticsScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B7FD8).withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -562,7 +563,7 @@ class MoodAnalyticsScreen extends StatelessWidget {
             height: 6,
             margin: const EdgeInsets.only(top: 6),
             decoration: const BoxDecoration(
-              color: Color(0xFF8B7FD8),
+              color: AppColors.primary,
               shape: BoxShape.circle,
             ),
           ),

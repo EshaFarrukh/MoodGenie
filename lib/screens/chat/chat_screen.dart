@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
+import 'package:moodgenie/src/theme/app_background.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -51,9 +55,11 @@ class _ChatScreenState extends State<ChatScreen> {
           _messages.clear();
           for (var doc in snapshot.docs) {
             final data = doc.data();
+            final isUser = data['isUser'] ?? false;
+            final text = data['message'] ?? '';
             _messages.add(ChatMessage(
-              text: data['message'] ?? '',
-              isUser: data['isUser'] ?? false,
+              text: text,
+              isUser: isUser,
               timestamp: (data['timestamp'] as Timestamp).toDate(),
             ));
           }
@@ -132,11 +138,33 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.clear();
     _scrollToBottom();
 
-    // Simulate AI response
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
+    // Generate AI response
+    _generateAiResponse(userMessage);
+  }
+
+  Future<void> _generateAiResponse(String message) async {
+    // Generate context from previous messages
+    final history = _messages.where((m) => m.text != message).map((m) => {
+      'text': m.text,
+      'isUser': m.isUser,
+    }).toList();
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:3000/api/chat'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'message': message,
+          'history': history,
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
         final aiResponse = ChatMessage(
-          text: _generateResponse(userMessage),
+          text: data['text'] ?? "I'm sorry, I couldn't understand that.",
           isUser: false,
           timestamp: DateTime.now(),
         );
@@ -146,15 +174,34 @@ class _ChatScreenState extends State<ChatScreen> {
           _isTyping = false;
         });
 
-        // Save AI response to Firestore
         _saveMessageToFirestore(aiResponse);
-
         _scrollToBottom();
+      } else {
+        throw Exception('Failed to load response: ${response.statusCode}');
       }
-    });
+    } catch (e) {
+      if (!mounted) return;
+      
+      // Fallback response for backend unavailable
+      final aiResponse = ChatMessage(
+        text: _generateFallbackResponse(message),
+        isUser: false,
+        timestamp: DateTime.now(),
+      );
+
+      setState(() {
+        _messages.add(aiResponse);
+        _isTyping = false;
+      });
+
+      _saveMessageToFirestore(aiResponse);
+      _scrollToBottom();
+      
+      print('❌ AI Error: $e');
+    }
   }
 
-  String _generateResponse(String message) {
+  String _generateFallbackResponse(String message) {
     final lowerMessage = message.toLowerCase();
 
     if (lowerMessage.contains('sad') || lowerMessage.contains('down') || lowerMessage.contains('depressed')) {
@@ -195,16 +242,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/moodgenie_bg.png'),
-            fit: BoxFit.cover,
-            alignment: Alignment.topCenter,
-          ),
-        ),
-        child: Column(
-          children: [
+      body: Stack(
+        children: [
+          const AppBackground(),
+          Column(
+            children: [
             // Header
             SafeArea(
               bottom: false,
@@ -221,7 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF8B7FD8).withOpacity(0.12),
+                      color: AppColors.primary.withOpacity(0.12),
                       blurRadius: 20,
                       offset: const Offset(0, 4),
                     ),
@@ -234,12 +276,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       height: 48,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF8B7FD8), Color(0xFF6B5CFF)],
+                          colors: [AppColors.primary, AppColors.primaryDeep],
                         ),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF6B5CFF).withOpacity(0.3),
+                            color: AppColors.primaryDeep.withOpacity(0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -292,7 +334,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       },
                       icon: const Icon(
                         Icons.more_vert_rounded,
-                        color: Color(0xFF8B7FD8),
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -305,7 +347,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: _isLoading
                   ? const Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF8B7FD8),
+                        color: AppColors.primary,
                       ),
                     )
                   : _messages.isEmpty
@@ -321,8 +363,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    const Color(0xFF8B7FD8).withOpacity(0.15),
-                                    const Color(0xFF6B5CFF).withOpacity(0.08),
+                                    AppColors.primary.withOpacity(0.15),
+                                    AppColors.primaryDeep.withOpacity(0.08),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(28),
@@ -330,7 +372,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: const Icon(
                                 Icons.chat_bubble_outline_rounded,
                                 size: 48,
-                                color: Color(0xFF8B7FD8),
+                                color: AppColors.primary,
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -423,12 +465,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       height: 44,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF8B7FD8), Color(0xFF6B5CFF)],
+                          colors: [AppColors.primary, AppColors.primaryDeep],
                         ),
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF6B5CFF).withOpacity(0.4),
+                            color: AppColors.primaryDeep.withOpacity(0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -450,6 +492,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        ],
       ),
     );
   }
@@ -468,7 +511,7 @@ class _ChatScreenState extends State<ChatScreen> {
               height: 32,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF8B7FD8), Color(0xFF6B5CFF)],
+                  colors: [AppColors.primary, AppColors.primaryDeep],
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -486,7 +529,7 @@ class _ChatScreenState extends State<ChatScreen> {
               decoration: BoxDecoration(
                 gradient: message.isUser
                     ? const LinearGradient(
-                        colors: [Color(0xFF8B7FD8), Color(0xFF6B5CFF)],
+                        colors: [AppColors.primary, AppColors.primaryDeep],
                       )
                     : null,
                 color: message.isUser ? null : Colors.white,
@@ -499,7 +542,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 boxShadow: [
                   BoxShadow(
                     color: message.isUser
-                        ? const Color(0xFF6B5CFF).withOpacity(0.3)
+                        ? AppColors.primaryDeep.withOpacity(0.3)
                         : Colors.black.withOpacity(0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
@@ -544,7 +587,7 @@ class _ChatScreenState extends State<ChatScreen> {
             height: 32,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF8B7FD8), Color(0xFF6B5CFF)],
+                colors: [AppColors.primary, AppColors.primaryDeep],
               ),
               borderRadius: BorderRadius.circular(10),
             ),
@@ -595,7 +638,7 @@ class _ChatScreenState extends State<ChatScreen> {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: const Color(0xFF8B7FD8),
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(4),
             ),
           ),

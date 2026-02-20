@@ -1,8 +1,10 @@
 import 'dart:ui';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../home/widgets/glass_card.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 class MoodHistoryScreen extends StatefulWidget {
   const MoodHistoryScreen({super.key});
@@ -219,9 +221,9 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
       case 3:
         return const _MoodMeta('Okay', '🙂', Color(0xFF9B8FD8)); // Medium purple
       case 4:
-        return const _MoodMeta('Good', '😊', Color(0xFF8B7FD8)); // Medium-dark purple
+        return const _MoodMeta('Good', '😊', AppColors.primary); // Medium-dark purple
       case 5:
-        return const _MoodMeta('Great', '😁', Color(0xFF6B5CFF)); // Dark purple
+        return const _MoodMeta('Great', '😁', AppColors.primaryDeep); // Dark purple
       default:
         return const _MoodMeta('Okay', '🙂', Color(0xFF9B8FD8)); // Medium purple
     }
@@ -350,10 +352,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
         children: [
           // Background
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: const AppBackground(),
           ),
 
           // Content
@@ -386,7 +385,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF8B7FD8).withOpacity(0.12),
+                              color: AppColors.primary.withOpacity(0.12),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -398,7 +397,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                               onPressed: () => Navigator.of(context).pop(),
                                 icon: const Icon(
                                 Icons.arrow_back_rounded,
-                                color: Color(0xFF6B5CFF),
+                                color: AppColors.primaryDeep,
                                 size: 24,
                               ),
                             ),
@@ -435,7 +434,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                                 ),
                                 child: const Icon(
                                   Icons.calendar_month_rounded,
-                                  color: Color(0xFF6B5CFF),
+                                  color: AppColors.primaryDeep,
                                   size: 22,
                                 ),
                               ),
@@ -451,7 +450,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                   child: _loading
                       ? const Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFF6B5CFF),
+                            color: AppColors.primaryDeep,
                             strokeWidth: 3,
                           ),
                         )
@@ -513,8 +512,8 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                     colors: [
-                                      const Color(0xFF8B7FD8).withOpacity(0.25),
-                                      const Color(0xFF6B5CFF).withOpacity(0.20),
+                                      AppColors.primary.withOpacity(0.25),
+                                      AppColors.primaryDeep.withOpacity(0.20),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(14),
@@ -524,7 +523,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF6B5CFF),
+                                    color: AppColors.primaryDeep,
                                   ),
                                 ),
                               ),
@@ -645,7 +644,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                                         icon: Icons.sentiment_satisfied_rounded,
                                         label: 'Average',
                                         value: _avgMoodEmoji + ' ' + _avgMoodLabel,
-                                        color: const Color(0xFF6B5CFF),
+                                        color: AppColors.primaryDeep,
                                       ),
                                     ),
                                     Container(
@@ -680,7 +679,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                                   IconButton(
                                     onPressed: _prevMonth,
                                     icon: const Icon(Icons.chevron_left_rounded),
-                                    color: const Color(0xFF6B5CFF),
+                                    color: AppColors.primaryDeep,
                                   ),
                                   Expanded(
                                     child: Center(
@@ -697,7 +696,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                                   IconButton(
                                     onPressed: _nextMonth,
                                     icon: const Icon(Icons.chevron_right_rounded),
-                                    color: const Color(0xFF6B5CFF),
+                                    color: AppColors.primaryDeep,
                                   ),
                                 ],
                               ),
@@ -982,8 +981,8 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFF8B7FD8).withOpacity(0.20),
-                        const Color(0xFF6B5CFF).withOpacity(0.15),
+                        AppColors.primary.withOpacity(0.20),
+                        AppColors.primaryDeep.withOpacity(0.15),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(10),
@@ -993,7 +992,7 @@ class _MoodHistoryScreenState extends State<MoodHistoryScreen> {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF6B5CFF),
+                      color: AppColors.primaryDeep,
                     ),
                   ),
                 ),
@@ -1151,7 +1150,7 @@ class _MoodLineChartPainter extends CustomPainter {
     // Draw average line (dashed)
     final avgY = yFor(avgScore.round());
     final avgLinePaint = Paint()
-      ..color = const Color(0xFF6B5CFF).withOpacity(0.4)
+      ..color = AppColors.primaryDeep.withOpacity(0.4)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
@@ -1189,7 +1188,7 @@ class _MoodLineChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          const Color(0xFF8B7FD8).withOpacity(0.3),
+          AppColors.primary.withOpacity(0.3),
           const Color(0xFFFF8E58).withOpacity(0.15),
           Colors.transparent,
         ],
@@ -1202,7 +1201,7 @@ class _MoodLineChartPainter extends CustomPainter {
       ..shader = const LinearGradient(
         colors: [
           Color(0xFFFF8E58),
-          Color(0xFF8B7FD8),
+          AppColors.primary,
         ],
       ).createShader(Rect.fromLTWH(leftPadding, topPadding, chartWidth, chartHeight))
       ..strokeWidth = 3.5
@@ -1223,7 +1222,7 @@ class _MoodLineChartPainter extends CustomPainter {
         ..shader = const LinearGradient(
           colors: [
             Color(0xFFFF8E58),
-            Color(0xFF8B7FD8),
+            AppColors.primary,
           ],
         ).createShader(Rect.fromCircle(center: Offset(x, y), radius: 12));
 
@@ -1345,8 +1344,8 @@ class _CalendarGrid extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xFF8B7FD8).withOpacity(0.35),
-                          const Color(0xFF6B5CFF).withOpacity(0.25),
+                          AppColors.primary.withOpacity(0.35),
+                          AppColors.primaryDeep.withOpacity(0.25),
                         ],
                       )
                     : hasMood
@@ -1368,7 +1367,7 @@ class _CalendarGrid extends StatelessWidget {
                           ),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF8B7FD8).withOpacity(0.6)
+                      ? AppColors.primary.withOpacity(0.6)
                       : hasMood
                           ? moodColor!.withOpacity(0.4)
                           : Colors.white.withOpacity(0.15),

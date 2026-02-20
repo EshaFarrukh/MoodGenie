@@ -1,8 +1,10 @@
 import 'dart:ui';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../src/services/mood_repository.dart';
 import 'mood_history_screen.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 class MoodLogScreen extends StatefulWidget {
   const MoodLogScreen({super.key});
@@ -278,10 +280,7 @@ class _MoodLogScreenState extends State<MoodLogScreen> {
         children: [
           // 🌈 Background
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: const AppBackground(),
           ),
 
           SafeArea(
@@ -314,7 +313,7 @@ class _MoodLogScreenState extends State<MoodLogScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF8B7FD8).withOpacity(0.12),
+                              color: AppColors.primary.withOpacity(0.12),
                               blurRadius: 24,
                               offset: const Offset(0, 10),
                             ),
@@ -462,10 +461,10 @@ class _MoodLogScreenState extends State<MoodLogScreen> {
                             trackHeight: 8,
                             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
                             overlayShape: const RoundSliderOverlayShape(overlayRadius: 22),
-                            activeTrackColor: const Color(0xFF8B7FD8),
+                            activeTrackColor: AppColors.primary,
                             inactiveTrackColor: const Color(0xFFE8DAFF).withOpacity(0.4),
-                            thumbColor: const Color(0xFF6B5CFF),
-                            overlayColor: const Color(0xFF8B7FD8).withOpacity(0.2),
+                            thumbColor: AppColors.primaryDeep,
+                            overlayColor: AppColors.primary.withOpacity(0.2),
                           ),
                           child: Slider(
                             value: _intensity,
@@ -490,7 +489,7 @@ class _MoodLogScreenState extends State<MoodLogScreen> {
                                     '$n',
                                     style: TextStyle(
                                       color: _intensity.round() == n
-                                          ? const Color(0xFF6B5CFF)
+                                          ? AppColors.primaryDeep
                                           : const Color(0xFF9B8FD8),
                                       fontWeight: _intensity.round() == n
                                           ? FontWeight.w900
@@ -552,7 +551,7 @@ class _MoodLogScreenState extends State<MoodLogScreen> {
                                 ),
                                 child: const Icon(
                                   Icons.calendar_month_rounded,
-                                  color: Color(0xFF6B5CFF),
+                                  color: AppColors.primaryDeep,
                                   size: 22,
                                 ),
                               ),
@@ -740,14 +739,14 @@ class _MoodLogScreenState extends State<MoodLogScreen> {
                         children: [
                           Icon(
                             Icons.history_rounded,
-                            color: Color(0xFF6B5CFF),
+                            color: AppColors.primaryDeep,
                             size: 20,
                           ),
                           SizedBox(width: 8),
                           Text(
                             'View Mood History',
                             style: TextStyle(
-                              color: Color(0xFF6B5CFF),
+                              color: AppColors.primaryDeep,
                               fontWeight: FontWeight.w900,
                               fontSize: 15,
                             ),
@@ -902,7 +901,7 @@ class _GlassCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF8B7FD8).withOpacity(0.12),
+                color: AppColors.primary.withOpacity(0.12),
                 blurRadius: 24,
                 offset: const Offset(0, 10),
               ),
@@ -962,14 +961,14 @@ class _MoodPill extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected
-                ? const Color(0xFF8B7FD8)
+                ? AppColors.primary
                 : const Color(0xFFFFFFFF).withOpacity(0.55),
             width: selected ? 2 : 1.5,
           ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF8B7FD8).withOpacity(0.25),
+                    color: AppColors.primary.withOpacity(0.25),
                     blurRadius: 18,
                     offset: const Offset(0, 8),
                   )
@@ -988,7 +987,7 @@ class _MoodPill extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: selected ? const Color(0xFF2D2545) : const Color(0xFF6B5CFF),
+                color: selected ? const Color(0xFF2D2545) : AppColors.primaryDeep,
                 fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
                 fontSize: 14,
                 letterSpacing: -0.2,

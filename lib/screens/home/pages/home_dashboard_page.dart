@@ -10,6 +10,7 @@ import 'package:moodgenie/screens/home/widgets/mood_bar.dart';
 import 'package:moodgenie/screens/home/widgets/circular_score_painter.dart';
 import 'package:moodgenie/screens/home/widgets/mood_count_row.dart';
 import 'package:moodgenie/src/services/mood_repository.dart';
+import 'package:moodgenie/src/theme/app_theme.dart';
 
 class HomeDashboardPage extends StatefulWidget {
   final VoidCallback onNavigateToChat;
@@ -233,10 +234,10 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF8B7FD8).withOpacity(0.15),
+                            color: AppColors.primary.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFF8B7FD8).withOpacity(0.3),
+                              color: AppColors.primary.withOpacity(0.3),
                               width: 1,
                             ),
                           ),
@@ -245,7 +246,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF6B5CFF),
+                              color: AppColors.primaryDeep,
                             ),
                           ),
                         ),
@@ -259,7 +260,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                         child: Padding(
                           padding: EdgeInsets.all(40.0),
                           child: CircularProgressIndicator(
-                            color: Color(0xFF8B7FD8),
+                            color: AppColors.primary,
                           ),
                         ),
                       )
@@ -327,7 +328,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                                   emoji: '😊',
                                   label: 'Great',
                                   count: greatCount,
-                                  color: const Color(0xFF8B7FD8),
+                                  color: AppColors.primary,
                                 ),
                                 const SizedBox(height: 10),
                                 MoodCountRow(
@@ -382,8 +383,8 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              const Color(0xFF8B7FD8).withOpacity(0.06),
-                              const Color(0xFF6B5CFF).withOpacity(0.03),
+                              AppColors.primary.withOpacity(0.06),
+                              AppColors.primaryDeep.withOpacity(0.03),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -411,11 +412,11 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                                   final index = bars.indexOf(height);
                                   final colors = [
                                     const Color(0xFF9B8FD8),
-                                    const Color(0xFF8B7FD8),
+                                    AppColors.primary,
                                     const Color(0xFF9B8FD8),
                                     const Color(0xFF7B6FD8),
-                                    const Color(0xFF8B7FD8),
-                                    const Color(0xFF6B5CFF),
+                                    AppColors.primary,
+                                    AppColors.primaryDeep,
                                     const Color(0xFF7B6FD8),
                                   ];
                                   return MoodBar(
@@ -439,14 +440,14 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                             _refreshData(); // Refresh data using the new method
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6B5CFF),
+                            backgroundColor: AppColors.primaryDeep,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
                             elevation: 0,
-                            shadowColor: const Color(0xFF6B5CFF).withOpacity(0.3),
+                            shadowColor: AppColors.primaryDeep.withOpacity(0.3),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,

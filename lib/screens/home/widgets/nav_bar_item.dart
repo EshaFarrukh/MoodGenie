@@ -25,7 +25,7 @@ class NavBarItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.accentWarm.withOpacity(0.13)
+              ? AppColors.accentSoft.withOpacity(0.13)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.m),
         ),
@@ -34,7 +34,7 @@ class NavBarItem extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.accentWarm : AppColors.navUnselected,
+              color: isSelected ? AppColors.accentSoft : AppColors.navUnselected,
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -43,7 +43,7 @@ class NavBarItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.accentWarm : AppColors.navUnselected,
+                color: isSelected ? AppColors.accentSoft : AppColors.navUnselected,
               ),
             ),
           ],

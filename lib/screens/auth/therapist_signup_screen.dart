@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:provider/provider.dart';
 import '../../src/theme/app_theme.dart';
 import '../../src/auth/services/auth_service.dart';
@@ -74,13 +75,8 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
           ),
 
           // Background image overlay
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-              color: Colors.white.withOpacity(0.2),
-              colorBlendMode: BlendMode.overlay,
-            ),
+          const Positioned.fill(
+            child: AppBackground(),
           ),
 
           // Content
@@ -101,7 +97,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                             onPressed: () => Navigator.pop(context),
                             icon: const Icon(
                               Icons.arrow_back_rounded,
-                              color: AppColors.purple,
+                              color: AppColors.primary,
                             ),
                           ),
                           const Expanded(
@@ -129,18 +125,18 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              AppColors.purple.withOpacity(0.1),
-                              AppColors.accentOrange.withOpacity(0.05),
+                              AppColors.primary.withOpacity(0.1),
+                              AppColors.accentCyan.withOpacity(0.05),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.purple.withOpacity(0.2),
+                            color: AppColors.primary.withOpacity(0.2),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.purple.withOpacity(0.1),
+                              color: AppColors.primary.withOpacity(0.1),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -156,14 +152,14 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    AppColors.purple,
-                                    AppColors.accentOrange,
+                                    AppColors.primary,
+                                    AppColors.accentCyan,
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.purple.withOpacity(0.3),
+                                    color: AppColors.primary.withOpacity(0.3),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),
@@ -292,7 +288,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                           Checkbox(
                             value: _acceptedTerms,
                             onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
-                            activeColor: AppColors.purple,
+                            activeColor: AppColors.primary,
                           ),
                           const Expanded(
                             child: Text(
@@ -319,14 +315,14 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                AppColors.purple,
-                                AppColors.accentOrange,
+                                AppColors.primary,
+                                AppColors.accentCyan,
                               ],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.purple.withOpacity(0.3),
+                                color: AppColors.primary.withOpacity(0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -397,7 +393,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                           child: const Text(
                             'Already have an account? Sign In',
                             style: TextStyle(
-                              color: AppColors.purple,
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -428,7 +424,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.purple.withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -459,8 +455,8 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.purple.withOpacity(0.8),
-                  AppColors.accentOrange.withOpacity(0.8),
+                  AppColors.primary.withOpacity(0.8),
+                  AppColors.accentCyan.withOpacity(0.8),
                 ],
               ),
               borderRadius: BorderRadius.circular(10),
@@ -479,14 +475,14 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: AppColors.purple.withOpacity(0.2),
+              color: AppColors.primary.withOpacity(0.2),
               width: 1,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: AppColors.purple,
+              color: AppColors.primary,
               width: 2,
             ),
           ),

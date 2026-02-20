@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -51,8 +52,8 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: AppColors.purple,
-                  secondary: AppColors.accentOrange,
+                  primary: AppColors.primary,
+                  secondary: AppColors.accentCyan,
                 ),
           ),
           child: child!,
@@ -226,10 +227,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/moodgenie_bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: const AppBackground(),
           ),
           Positioned.fill(
             child: Container(color: Colors.white.withValues(alpha: 0.08)),
@@ -253,7 +251,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                       elevation: 0,
                       floating: true,
                       leading: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.purple),
+                        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       title: const Text('Book Appointment'),
@@ -281,7 +279,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                                       ),
                                     ],
                                   ),
-                                  child: const Icon(Icons.psychology_alt_rounded, color: AppColors.purple),
+                                  child: const Icon(Icons.psychology_alt_rounded, color: AppColors.primary),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -309,7 +307,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                                       Row(
                                         children: [
                                           if (rating != null) ...[
-                                            const Icon(Icons.star_rounded, size: 16, color: AppColors.accentOrange),
+                                            const Icon(Icons.star_rounded, size: 16, color: AppColors.accentCyan),
                                             const SizedBox(width: 4),
                                             Text(
                                               rating.toStringAsFixed(1),
@@ -344,7 +342,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                             gradientColors: const [Color(0xFFFFFFFF), Color(0xFFF4EEFF)],
                             child: Row(
                               children: [
-                                const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.purple),
+                                const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.primary),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -395,7 +393,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                             child: ElevatedButton(
                               onPressed: _submitting ? null : () => _submit(therapist: t),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accentOrange,
+                                backgroundColor: AppColors.accentCyan,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                                 elevation: 0,
@@ -457,9 +455,9 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.purple : Colors.white,
+          color: selected ? AppColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? AppColors.purple : AppColors.purple.withValues(alpha: 0.15)),
+          border: Border.all(color: selected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.15)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
