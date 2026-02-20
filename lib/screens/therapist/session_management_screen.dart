@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import '../../src/theme/app_theme.dart';
 import '../../src/theme/app_background.dart';
 import '../../models/session_model.dart';
+import '../../src/auth/models/user_model.dart';
 import '../../controllers/therapist_controller.dart';
+import '../../services/therapist_service.dart';
 import 'video_call_screen.dart';
 
 class SessionManagementScreen extends StatelessWidget {
@@ -31,7 +33,7 @@ class SessionManagementScreen extends StatelessWidget {
         children: [
           const AppBackground(),
           SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -174,7 +176,13 @@ class SessionManagementScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _buildInfoRow(Icons.access_time, 'Time', timeFormat.format(session.scheduledAt)),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.person_outline, 'Patient ID', session.userId.substring(0, 8) + '...'), // In a real app, fetch patient name
+          FutureBuilder<AppUser?>(
+            future: TherapistService().getUserById(session.userId),
+            builder: (context, snapshot) {
+              final name = snapshot.data?.name ?? 'Loading...';
+              return _buildInfoRow(Icons.person_outline, 'Patient Name', name);
+            }
+          ),
         ],
       ),
     );

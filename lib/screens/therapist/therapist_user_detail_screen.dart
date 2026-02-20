@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../src/theme/app_theme.dart';
 import '../../src/theme/app_background.dart';
 import '../../src/auth/models/user_model.dart';
+import '../../services/therapist_service.dart';
+import 'package:intl/intl.dart';
 
 class TherapistUserDetailScreen extends StatelessWidget {
   final AppUser user;
@@ -31,7 +33,7 @@ class TherapistUserDetailScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   const Text('Recent Mood History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.headingDark)),
                   const SizedBox(height: 16),
-                  _buildMockMoodChart(),
+                  _buildPatientMoodHistory(),
                   const SizedBox(height: 32),
                   const Text('Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.headingDark)),
                   const SizedBox(height: 16),
@@ -109,27 +111,115 @@ class TherapistUserDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMockMoodChart() {
-    // In a real implementation, this would query MoodRepository for the patient's ID
-    return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.bar_chart, size: 60, color: AppColors.primary.withOpacity(0.3)),
-            const SizedBox(height: 16),
-            const Text('Patient Mood Analytics', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-            const Text('Data locked until consent verified.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-          ],
-        ),
-      ),
+  Widget _buildPatientMoodHistory() {
+    final therapistService = TherapistService();
+
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: therapistService.getPatientRecentMoods(user.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading mood history', style: const TextStyle(color: Colors.red)));
+        }
+
+        final moods = snapshot.data ?? [];
+
+        if (moods.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+            ),
+            child: const Center(
+              child: Text(
+                'No mood entries logged yet.',
+                style: TextStyle(color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: AppShadows.soft(),
+          ),
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: moods.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final moodDoc = moods[index];
+              final moodName = (moodDoc['mood'] ?? 'Unknown').toString().toUpperCase();
+              final intensity = (moodDoc['intensity'] as num?)?.toInt() ?? 5;
+              final note = moodDoc['note'] as String? ?? '';
+              
+              DateTime? date;
+              if (moodDoc['createdAt'] != null) {
+                date = moodDoc['createdAt'].toDate();
+              }
+
+              String emoji = '😐';
+              switch (moodName.toLowerCase()) {
+                case 'happy': emoji = '😊'; break;
+                case 'calm': emoji = '😌'; break;
+                case 'sad': emoji = '😢'; break;
+                case 'anxious': emoji = '😰'; break;
+                case 'angry': emoji = '😠'; break;
+              }
+
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                leading: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryFaint,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                ),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      moodName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.headingDark),
+                    ),
+                    if (date != null)
+                      Text(
+                        DateFormat('MMM d').format(date),
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                  ],
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(
+                      'Intensity: $intensity/10',
+                      style: const TextStyle(fontSize: 12, color: AppColors.primaryDeep, fontWeight: FontWeight.bold),
+                    ),
+                    if (note.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '"$note"',
+                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

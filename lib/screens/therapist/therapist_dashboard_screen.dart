@@ -160,12 +160,20 @@ class _TherapistDashboardContent extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'You have a busy day ahead!',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 14,
-                  ),
+                StreamBuilder<List<SessionModel>>(
+                  stream: context.read<TherapistController>().todaySessions,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data?.length ?? 0;
+                    return Text(
+                      count > 0 
+                          ? 'You have $count session${count == 1 ? '' : 's'} scheduled for today.' 
+                          : 'Your schedule is clear for today.',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -219,8 +227,12 @@ class _TherapistDashboardContent extends StatelessWidget {
         subtitle: Text(timeStr),
         trailing: const Icon(Icons.chevron_right, color: AppColors.primary),
         onTap: () {
+          final ctrl = context.read<TherapistController>();
           Navigator.push(context, MaterialPageRoute(
-            builder: (_) => SessionManagementScreen(session: session),
+            builder: (_) => ChangeNotifierProvider.value(
+              value: ctrl,
+              child: SessionManagementScreen(session: session),
+            ),
           ));
         },
       ),
@@ -285,8 +297,12 @@ class _TherapistDashboardContent extends StatelessWidget {
         subtitle: const Text('Click to manage or start call.', style: TextStyle(fontSize: 12)),
         trailing: const Icon(Icons.video_call, color: AppColors.accentCyan, size: 30),
         onTap: () {
-           Navigator.push(context, MaterialPageRoute(
-            builder: (_) => SessionManagementScreen(session: session),
+          final ctrl = context.read<TherapistController>();
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => ChangeNotifierProvider.value(
+              value: ctrl,
+              child: SessionManagementScreen(session: session),
+            ),
           ));
         },
       ),

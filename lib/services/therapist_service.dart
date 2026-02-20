@@ -54,10 +54,39 @@ class TherapistService {
             .toList());
   }
 
+  // Fetch a specific user by ID
+  Future<AppUser?> getUserById(String userId) async {
+    final doc = await _firestore.collection('users').doc(userId).get();
+    if (doc.exists) {
+      return AppUser.fromMap(doc.data()!, doc.id);
+    }
+    return null;
+  }
+
   // Update session status
   Future<void> updateSessionStatus(String sessionId, String status) async {
     await _firestore.collection('sessions').doc(sessionId).update({
       'status': status,
+    });
+  }
+
+  // Stream patient recent moods (sorted locally to avoid Firestore composite index errors)
+  Stream<List<Map<String, dynamic>>> getPatientRecentMoods(String patientId) {
+    return _firestore
+        .collection('moods')
+        .where('userId', isEqualTo: patientId)
+        .snapshots()
+        .map((snapshot) {
+      final records = snapshot.docs.map((doc) => doc.data()).toList();
+      records.sort((a, b) {
+        final tA = a['createdAt'] as Timestamp?;
+        final tB = b['createdAt'] as Timestamp?;
+        if (tA == null && tB == null) return 0;
+        if (tA == null) return 1;
+        if (tB == null) return -1;
+        return tB.compareTo(tA);
+      });
+      return records.take(7).toList();
     });
   }
 
