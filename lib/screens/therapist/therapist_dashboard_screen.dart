@@ -11,6 +11,9 @@ import '../../src/auth/models/user_model.dart';
 import '../../services/therapist_service.dart';
 import 'therapist_user_detail_screen.dart';
 import 'session_management_screen.dart';
+import 'tabs/therapist_patients_tab.dart';
+import 'tabs/therapist_schedule_tab.dart';
+import 'tabs/therapist_profile_tab.dart';
 
 class TherapistDashboardScreen extends StatefulWidget {
   const TherapistDashboardScreen({super.key});
@@ -36,41 +39,14 @@ class _TherapistDashboardScreenState extends State<TherapistDashboardScreen> {
               index: _selectedIndex,
               children: [
                 const _TherapistDashboardContent(),
-                _buildPlaceholder('Patient Directory', Icons.people_alt, 'Manage all your assigned patients.'),
-                _buildPlaceholder('Weekly Schedule', Icons.calendar_month, 'View and manage your upcoming calendar.'),
-                _buildPlaceholder('Therapist Profile', Icons.person, 'Update your credentials and clinic details.'),
+                const TherapistPatientsTab(),
+                const TherapistScheduleTab(),
+                const TherapistProfileTab(),
               ],
             ),
           ],
         ),
         bottomNavigationBar: _buildBottomNav(),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder(String title, IconData icon, String subtitle) {
-    return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
-              child: Icon(icon, size: 80, color: AppColors.primary),
-            ),
-            const SizedBox(height: 24),
-            Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.headingDark)),
-            const SizedBox(height: 12),
-            Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(color: AppColors.accentCyan.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-              child: const Text('Coming in the next update', style: TextStyle(color: AppColors.accentCyan, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
       ),
     );
   }
