@@ -7,6 +7,7 @@ import '../../src/auth/services/auth_service.dart';
 import '../../controllers/therapist_controller.dart';
 import '../../models/session_model.dart';
 import '../../src/auth/models/user_model.dart';
+import '../../services/therapist_service.dart';
 import 'therapist_user_detail_screen.dart';
 import 'session_management_screen.dart';
 
@@ -43,6 +44,8 @@ class _TherapistDashboardContent extends StatelessWidget {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       _buildWelcomeCard(context),
+                      const SizedBox(height: 24),
+                      _buildMetricsRow(context, controller),
                       const SizedBox(height: 24),
                       if (controller.error != null) _buildErrorBanner(controller.error!),
                       _buildPendingRequestsSection(context, controller),
@@ -131,53 +134,120 @@ class _TherapistDashboardContent extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryLight],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: AppColors.primaryDeep,
+        image: const DecorationImage(
+          image: NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'),
+          opacity: 0.1,
+          fit: BoxFit.cover,
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: AppShadows.card(),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(color: AppColors.primaryDeep.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.white.withOpacity(0.2),
-            child: const Icon(Icons.medical_services, color: Colors.white, size: 30),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome, Dr. ${user?.name?.split(' ').first ?? 'Therapist'}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
                 ),
-                const SizedBox(height: 4),
-                StreamBuilder<List<SessionModel>>(
-                  stream: context.read<TherapistController>().todaySessions,
-                  builder: (context, snapshot) {
-                    final count = snapshot.data?.length ?? 0;
-                    return Text(
-                      count > 0 
-                          ? 'You have $count session${count == 1 ? '' : 's'} scheduled for today.' 
-                          : 'Your schedule is clear for today.',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 14,
-                      ),
-                    );
-                  },
+                child: const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.transparent,
+                  child: Icon(Icons.person, color: Colors.white, size: 30),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dr. ${user?.name?.split(' ').first ?? 'Therapist'}',
+                      style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                    ),
+                    Text(
+                      'Clinical Psychologist',
+                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                 padding: const EdgeInsets.all(8),
+                 decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                 child: const Icon(Icons.notifications_none, color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_month, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: StreamBuilder<List<SessionModel>>(
+                    stream: context.read<TherapistController>().todaySessions,
+                    builder: (context, snapshot) {
+                      final count = snapshot.data?.length ?? 0;
+                      return Text(
+                        count > 0 
+                            ? 'You have $count session${count == 1 ? '' : 's'} scheduled for today.' 
+                            : 'Your schedule is clear for today.',
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricsRow(BuildContext context, TherapistController controller) {
+    return Row(
+      children: [
+        Expanded(child: _buildMetricCard(context, 'Total Patients', Icons.people_alt, AppColors.accentCyan)),
+        const SizedBox(width: 16),
+        Expanded(child: _buildMetricCard(context, 'Telehealth', Icons.video_call, AppColors.primary)),
+        const SizedBox(width: 16),
+        Expanded(child: _buildMetricCard(context, 'Rating', Icons.star, Colors.amber)),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard(BuildContext context, String title, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppShadows.soft(),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.headingDark), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -215,26 +285,58 @@ class _TherapistDashboardContent extends StatelessWidget {
     final timeStr = DateFormat('MMM d, h:mm a').format(session.scheduledAt);
     return Card(
       elevation: 0,
-      color: Colors.white.withOpacity(0.8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: AppColors.accentSoft,
-          child: const Icon(Icons.person, color: AppColors.primaryDeep),
-        ),
-        title: Text('Booking Request', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.headingDark)),
-        subtitle: Text(timeStr),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.primary),
-        onTap: () {
-          final ctrl = context.read<TherapistController>();
-          Navigator.push(context, MaterialPageRoute(
-            builder: (_) => ChangeNotifierProvider.value(
-              value: ctrl,
-              child: SessionManagementScreen(session: session),
+      color: Colors.white,
+      shadowColor: Colors.black.withOpacity(0.05),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.orange.withOpacity(0.2), width: 1.5)),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: FutureBuilder<AppUser?>(
+        future: TherapistService().getUserById(session.userId),
+        builder: (context, snapshot) {
+          final userName = snapshot.data?.name ?? 'Loading Patient...';
+          return InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              final ctrl = context.read<TherapistController>();
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => ChangeNotifierProvider.value(
+                  value: ctrl,
+                  child: SessionManagementScreen(session: session),
+                ),
+              ));
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50, height: 50,
+                    decoration: BoxDecoration(color: Colors.orange.shade50, shape: BoxShape.circle),
+                    child: const Icon(Icons.person, color: Colors.orange),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Pending: $userName', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.headingDark)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
+                            const SizedBox(width: 4),
+                            Text(timeStr, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: Colors.orange),
+                ],
+              ),
             ),
-          ));
-        },
+          );
+        }
       ),
     );
   }
@@ -271,40 +373,77 @@ class _TherapistDashboardContent extends StatelessWidget {
   }
 
   Widget _buildSessionTile(BuildContext context, SessionModel session) {
-    final timeStr = DateFormat('h:mm a').format(session.scheduledAt);
     return Card(
       elevation: 0,
-      color: Colors.white.withOpacity(0.9),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppColors.primary.withOpacity(0.2))),
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(DateFormat('h:mm').format(session.scheduledAt), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-              Text(DateFormat('a').format(session.scheduledAt), style: const TextStyle(fontSize: 10, color: AppColors.primary)),
-            ],
-          ),
-        ),
-        title: const Text('Confirmed Session', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.headingDark)),
-        subtitle: const Text('Click to manage or start call.', style: TextStyle(fontSize: 12)),
-        trailing: const Icon(Icons.video_call, color: AppColors.accentCyan, size: 30),
-        onTap: () {
-          final ctrl = context.read<TherapistController>();
-          Navigator.push(context, MaterialPageRoute(
-            builder: (_) => ChangeNotifierProvider.value(
-              value: ctrl,
-              child: SessionManagementScreen(session: session),
+      color: Colors.white,
+      shadowColor: AppColors.primary.withOpacity(0.1),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: AppColors.primary.withOpacity(0.15), width: 1.5)),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: FutureBuilder<AppUser?>(
+        future: TherapistService().getUserById(session.userId),
+        builder: (context, snapshot) {
+          final userName = snapshot.data?.name ?? 'Loading...';
+          return InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              final ctrl = context.read<TherapistController>();
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => ChangeNotifierProvider.value(
+                  value: ctrl,
+                  child: SessionManagementScreen(session: session),
+                ),
+              ));
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(DateFormat('h:mm').format(session.scheduledAt), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primaryDeep)),
+                        Text(DateFormat('a').format(session.scheduledAt), style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.headingDark)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: AppColors.accentCyan.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                              child: const Text('Confirmed', style: TextStyle(fontSize: 10, color: AppColors.accentCyan, fontWeight: FontWeight.bold)),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Video Call', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.video_camera_front, color: AppColors.primary, size: 24),
+                  ),
+                ],
+              ),
             ),
-          ));
-        },
+          );
+        }
       ),
     );
   }
