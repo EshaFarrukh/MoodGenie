@@ -32,6 +32,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay? _selectedTime;
   bool _submitting = false;
+  bool _consentGiven = true; // Default to opting in for better care
 
   @override
   void dispose() {
@@ -181,7 +182,10 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
 
     setState(() => _submitting = true);
     try {
-      await FirebaseFirestore.instance.collection('appointments').add({
+      final batch = FirebaseFirestore.instance.batch();
+      
+      final appointmentRef = FirebaseFirestore.instance.collection('appointments').doc();
+      batch.set(appointmentRef, {
         'userId': user.uid,
         'therapistId': widget.therapistId,
         'scheduledAt': Timestamp.fromDate(scheduledAt),
@@ -189,6 +193,20 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
         'notes': _notesController.text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
       });
+
+      if (_consentGiven) {
+        final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+        batch.update(userRef, {
+          'consentedTherapists': FieldValue.arrayUnion([widget.therapistId])
+        });
+      } else {
+         final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+        batch.update(userRef, {
+          'consentedTherapists': FieldValue.arrayRemove([widget.therapistId])
+        });
+      }
+
+      await batch.commit();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -386,7 +404,21 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 24),
+                          const Text('Data Privacy Consent', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary)),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: AppShadows.soft()),
+                            child: SwitchListTile(
+                              title: const Text('Share Mood Data', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 14)),
+                              subtitle: const Text('Allow therapist to securely view your mood history', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                              activeColor: AppColors.accentCyan,
+                              value: _consentGiven,
+                              onChanged: (val) => setState(() => _consentGiven = val),
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             height: 52,

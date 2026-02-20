@@ -8,7 +8,8 @@ class AppUser {
   final String email;
   final String? name;
   final UserRole role;
-  final bool consentAccepted;
+  final bool consentAccepted; // App terms consent
+  final List<String> consentedTherapists; // Therapist IDs allowed to view mood data
   final DateTime createdAt;
   final DateTime lastLoginAt;
 
@@ -18,6 +19,7 @@ class AppUser {
     this.name,
     required this.role,
     required this.consentAccepted,
+    this.consentedTherapists = const [],
     required this.createdAt,
     required this.lastLoginAt,
   });
@@ -32,6 +34,7 @@ class AppUser {
         orElse: () => UserRole.user,
       ),
       consentAccepted: map['consentAccepted'] ?? false,
+      consentedTherapists: List<String>.from(map['consentedTherapists'] ?? []),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastLoginAt: (map['lastLoginAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -43,6 +46,7 @@ class AppUser {
       'name': name,
       'role': role.name,
       'consentAccepted': consentAccepted,
+      'consentedTherapists': consentedTherapists,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLoginAt': Timestamp.fromDate(lastLoginAt),
     };
@@ -53,6 +57,7 @@ class AppUser {
     String? name,
     UserRole? role,
     bool? consentAccepted,
+    List<String>? consentedTherapists,
     DateTime? createdAt,
     DateTime? lastLoginAt,
   }) {
@@ -62,6 +67,7 @@ class AppUser {
       name: name ?? this.name,
       role: role ?? this.role,
       consentAccepted: consentAccepted ?? this.consentAccepted,
+      consentedTherapists: consentedTherapists ?? this.consentedTherapists,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );

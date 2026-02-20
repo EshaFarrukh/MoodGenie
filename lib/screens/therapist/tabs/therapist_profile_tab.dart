@@ -83,7 +83,9 @@ class _TherapistProfileTabState extends State<TherapistProfileTab> {
               ),
               child: Column(
                 children: [
-                  _buildListTile(Icons.person_outline, 'Edit Profile Details', onTap: () {}),
+                  _buildListTile(Icons.person_outline, 'Edit Profile Details', onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile Editor coming in v2.1!')));
+                  }),
                   const Divider(height: 1, thickness: 1, color: AppColors.primaryLight, indent: 16, endIndent: 16),
                   SwitchListTile(
                     title: const Text('Push Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.headingDark)),
@@ -97,9 +99,13 @@ class _TherapistProfileTabState extends State<TherapistProfileTab> {
                     ),
                   ),
                   const Divider(height: 1, thickness: 1, color: AppColors.primaryLight, indent: 16, endIndent: 16),
-                  _buildListTile(Icons.security, 'Privacy & Security', onTap: () {}),
+                  _buildListTile(Icons.security, 'Privacy & Security', onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Your account is secured with end-to-end encryption.')));
+                  }),
                   const Divider(height: 1, thickness: 1, color: AppColors.primaryLight, indent: 16, endIndent: 16),
-                  _buildListTile(Icons.help_outline, 'Help & Support', onTap: () {}),
+                  _buildListTile(Icons.help_outline, 'Help & Support', onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Redirecting to the MoodGenie Support Center...')));
+                  }),
                 ],
               ),
             ),

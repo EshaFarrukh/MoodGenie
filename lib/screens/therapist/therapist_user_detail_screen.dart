@@ -4,6 +4,7 @@ import '../../src/theme/app_background.dart';
 import '../../src/auth/models/user_model.dart';
 import '../../services/therapist_service.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TherapistUserDetailScreen extends StatelessWidget {
   final AppUser user;
@@ -112,6 +113,36 @@ class TherapistUserDetailScreen extends StatelessWidget {
   }
 
   Widget _buildPatientMoodHistory() {
+    final currentTherapistId = FirebaseAuth.instance.currentUser?.uid;
+    final hasConsent = currentTherapistId != null && user.consentedTherapists.contains(currentTherapistId);
+
+    if (!hasConsent) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.red.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.lock_outline, size: 60, color: Colors.red.withOpacity(0.5)),
+            const SizedBox(height: 16),
+            const Text(
+              'Data Locked',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.headingDark),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'This patient has not consented to sharing their mood analytics and history with you. They must opt-in during their next booking or via their profile settings.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
     final therapistService = TherapistService();
 
     return StreamBuilder<List<Map<String, dynamic>>>(

@@ -5,8 +5,15 @@ import '../../../src/auth/models/user_model.dart';
 import '../../../controllers/therapist_controller.dart';
 import '../therapist_user_detail_screen.dart';
 
-class TherapistPatientsTab extends StatelessWidget {
+class TherapistPatientsTab extends StatefulWidget {
   const TherapistPatientsTab({super.key});
+
+  @override
+  State<TherapistPatientsTab> createState() => _TherapistPatientsTabState();
+}
+
+class _TherapistPatientsTabState extends State<TherapistPatientsTab> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +49,9 @@ class TherapistPatientsTab extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: AppShadows.soft(),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                decoration: const InputDecoration(
                   icon: Icon(Icons.search, color: AppColors.primary),
                   hintText: 'Search patients by name...',
                   border: InputBorder.none,
@@ -60,7 +68,11 @@ class TherapistPatientsTab extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                   }
                   
-                  final users = snapshot.data ?? [];
+                  var users = snapshot.data ?? [];
+                  
+                  if (_searchQuery.isNotEmpty) {
+                    users = users.where((u) => (u.name ?? 'Anonymous User').toLowerCase().contains(_searchQuery)).toList();
+                  }
                   
                   if (users.isEmpty) {
                     return Center(
