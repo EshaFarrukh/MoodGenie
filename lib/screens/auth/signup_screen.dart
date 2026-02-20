@@ -102,8 +102,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       name: name,
     );
 
-    if (mounted && authService.state.status == AuthStatus.authenticated) {
-      Navigator.pop(context);
+    if (mounted) {
+      if (authService.state.status == AuthStatus.authenticated) {
+        Navigator.pop(context);
+      } else if (authService.state.error != null) {
+        setState(() => _error = authService.state.error);
+      }
     }
   }
 

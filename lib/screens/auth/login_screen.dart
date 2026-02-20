@@ -62,6 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authService = context.read<AuthService>();
     await authService.signIn(email: email, password: password);
+
+    if (mounted && authService.state.error != null) {
+      setState(() => _error = authService.state.error);
+    }
   }
 
 

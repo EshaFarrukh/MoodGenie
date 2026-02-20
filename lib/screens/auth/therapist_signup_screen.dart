@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../src/theme/app_theme.dart';
 import '../../src/auth/services/auth_service.dart';
 import '../../src/auth/widgets/auth_widgets.dart';
+import '../../src/auth/models/auth_models.dart';
 
 class TherapistSignUpScreen extends StatefulWidget {
   const TherapistSignUpScreen({super.key});
@@ -50,6 +51,19 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
       password: _passwordController.text,
       name: _nameController.text.trim(),
     );
+
+    if (mounted) {
+      if (authService.state.status == AuthStatus.authenticated) {
+        Navigator.pop(context);
+      } else if (authService.state.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authService.state.error!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
