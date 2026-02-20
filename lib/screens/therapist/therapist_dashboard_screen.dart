@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:provider/provider.dart';
@@ -11,14 +12,103 @@ import '../../services/therapist_service.dart';
 import 'therapist_user_detail_screen.dart';
 import 'session_management_screen.dart';
 
-class TherapistDashboardScreen extends StatelessWidget {
+class TherapistDashboardScreen extends StatefulWidget {
   const TherapistDashboardScreen({super.key});
+
+  @override
+  State<TherapistDashboardScreen> createState() => _TherapistDashboardScreenState();
+}
+
+class _TherapistDashboardScreenState extends State<TherapistDashboardScreen> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => TherapistController(),
-      child: const _TherapistDashboardContent(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        body: Stack(
+          children: [
+            const AppBackground(),
+            IndexedStack(
+              index: _selectedIndex,
+              children: [
+                const _TherapistDashboardContent(),
+                _buildPlaceholder('Patient Directory', Icons.people_alt, 'Manage all your assigned patients.'),
+                _buildPlaceholder('Weekly Schedule', Icons.calendar_month, 'View and manage your upcoming calendar.'),
+                _buildPlaceholder('Therapist Profile', Icons.person, 'Update your credentials and clinic details.'),
+              ],
+            ),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomNav(),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(String title, IconData icon, String subtitle) {
+    return SafeArea(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+              child: Icon(icon, size: 80, color: AppColors.primary),
+            ),
+            const SizedBox(height: 24),
+            Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.headingDark)),
+            const SizedBox(height: 12),
+            Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+            const SizedBox(height: 32),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(color: AppColors.accentCyan.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+              child: const Text('Coming in the next update', style: TextStyle(color: AppColors.accentCyan, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(color: AppColors.primaryDeep.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: BottomNavigationBar(
+            backgroundColor: Colors.white.withOpacity(0.9),
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: AppColors.primaryDeep,
+            unselectedItemColor: AppColors.textSecondary.withOpacity(0.5),
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+            currentIndex: _selectedIndex,
+            onTap: (i) => setState(() => _selectedIndex = i),
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Patients'),
+              BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Schedule'),
+              BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -44,6 +134,8 @@ class _TherapistDashboardContent extends StatelessWidget {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       _buildWelcomeCard(context),
+                      const SizedBox(height: 24),
+                      _buildWeeklyCalendar(context),
                       const SizedBox(height: 24),
                       _buildMetricsRow(context, controller),
                       const SizedBox(height: 24),
@@ -215,6 +307,55 @@ class _TherapistDashboardContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildWeeklyCalendar(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final upcomingDates = List.generate(7, (i) => today.add(Duration(days: i)));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Weekly Overview', Icons.calendar_month),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 85,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: upcomingDates.length,
+            separatorBuilder: (context, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final date = upcomingDates[index];
+              final isToday = index == 0;
+              final dayName = DateFormat('EEE').format(date);
+              final dayNum = DateFormat('d').format(date);
+
+              return Container(
+                width: 65,
+                decoration: BoxDecoration(
+                  gradient: isToday
+                      ? const LinearGradient(colors: [AppColors.primary, AppColors.accentCyan], begin: Alignment.topLeft, end: Alignment.bottomRight)
+                      : null,
+                  color: isToday ? null : Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                  border: isToday ? null : Border.all(color: AppColors.primary.withOpacity(0.1)),
+                  boxShadow: isToday ? [BoxShadow(color: AppColors.accentCyan.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))] : [],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(dayName, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isToday ? Colors.white : AppColors.textSecondary)),
+                    const SizedBox(height: 4),
+                    Text(dayNum, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isToday ? Colors.white : AppColors.headingDark)),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
