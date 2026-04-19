@@ -119,10 +119,12 @@ class RequestSessionUseCase {
     required String therapistId,
     required DateTime scheduledAt,
   }) async {
-    return await call(RequestSessionParams(
-      userId: userId,
-      therapistId: therapistId,
-      scheduledAt: scheduledAt,
-    ));
+    return await call(
+      RequestSessionParams(
+        userId: userId,
+        therapistId: therapistId,
+        scheduledAt: scheduledAt,
+      ),
+    );
   }
 }

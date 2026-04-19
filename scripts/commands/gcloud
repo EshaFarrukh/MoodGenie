@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SDK_ROOT="/opt/homebrew/share/google-cloud-sdk"
+SDK_BIN="$SDK_ROOT/bin/gcloud"
+PREFERRED_PYTHON="/opt/homebrew/opt/python@3.14/bin/python3.14"
+
+if [[ ! -x "$SDK_BIN" ]]; then
+  echo "gcloud is not installed at $SDK_BIN." >&2
+  echo "Install or repair the Google Cloud SDK first, then try again." >&2
+  exit 1
+fi
+
+export PATH="/opt/homebrew/bin:$SDK_ROOT/bin:$PATH"
+
+if [[ -x "$PREFERRED_PYTHON" ]]; then
+  export CLOUDSDK_PYTHON="$PREFERRED_PYTHON"
+fi
+
+exec "$SDK_BIN" "$@"

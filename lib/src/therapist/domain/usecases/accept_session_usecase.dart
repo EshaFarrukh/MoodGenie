@@ -1,4 +1,3 @@
-import '../entities/session_entity.dart';
 import '../repositories/session_repository.dart';
 
 /// Use case for accepting a therapy session request
@@ -23,7 +22,7 @@ class AcceptSessionUseCase {
     // Validate session can be accepted
     if (!session.canBeAccepted()) {
       throw StateError(
-        'Session cannot be accepted. Current status: ${session.status.displayName}'
+        'Session cannot be accepted. Current status: ${session.status.displayName}',
       );
     }
 
@@ -63,7 +62,9 @@ class AcceptSessionUseCase {
     conflicts.removeWhere((conflict) => conflict.sessionId == sessionId);
 
     if (conflicts.isNotEmpty) {
-      throw StateError('There is a scheduling conflict. Please reject this session.');
+      throw StateError(
+        'There is a scheduling conflict. Please reject this session.',
+      );
     }
 
     // Accept the session

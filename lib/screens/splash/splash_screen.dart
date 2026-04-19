@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moodgenie/l10n/app_localizations.dart';
 import 'package:moodgenie/src/theme/app_background.dart';
 import '../../src/theme/app_theme.dart';
 
@@ -39,6 +40,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -48,72 +51,77 @@ class _SplashScreenState extends State<SplashScreen>
           const AppBackground(),
 
           // Semi-transparent overlay for better contrast
-          Container(
-            color: Colors.white.withOpacity(0.3),
-          ),
+          Container(color: Colors.white.withValues(alpha: 0.3)),
 
           // Centered logo + tagline
-          Center(
-            child: FadeTransition(
-              opacity: _fadeIn,
-              child: SlideTransition(
-                position: _slideUp,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // MoodGenie gradient text logo
-                    ShaderMask(
-                      shaderCallback: (bounds) => const LinearGradient(
-                        colors: [
-                          AppColors.primary,
-                          Color(0xFFB87FD8),
-                          Color(0xFFD87FB8),
-                          AppColors.accentCyan,
-                          Color(0xFFFFB366),
-                        ],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ).createShader(bounds),
-                      child: const Text(
-                        'MoodGenie',
-                        style: TextStyle(
-                          fontSize: 56,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -2,
+          Semantics(
+            label: l10n.splashLoadingLabel,
+            liveRegion: true,
+            child: Center(
+              child: FadeTransition(
+                opacity: _fadeIn,
+                child: SlideTransition(
+                  position: _slideUp,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // MoodGenie gradient text logo
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            Color(0xFFB87FD8),
+                            Color(0xFFD87FB8),
+                            AppColors.accentCyan,
+                            Color(0xFFFFB366),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ).createShader(bounds),
+                        child: Text(
+                          l10n.appTitle,
+                          style: const TextStyle(
+                            fontSize: 56,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -2,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Curved underline decoration
-                    CustomPaint(
-                      size: const Size(280, 24),
-                      painter: _CurvedUnderlinePainter(),
-                    ),
-                    const SizedBox(height: 20),
-                    // Tagline
-                    Text(
-                      'Your AI Mental Wellness Companion',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.bodyMuted.withOpacity(0.85),
-                        letterSpacing: 0.3,
+                      const SizedBox(height: 8),
+                      // Curved underline decoration
+                      CustomPaint(
+                        size: const Size(280, 24),
+                        painter: _CurvedUnderlinePainter(),
                       ),
-                    ),
-                    const SizedBox(height: 40),
-                    // Loading indicator
-                    SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                        strokeWidth: 2.5,
-                        backgroundColor: AppColors.primary.withOpacity(0.15),
+                      const SizedBox(height: 20),
+                      // Tagline
+                      Text(
+                        l10n.splashTagline,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.bodyMuted.withValues(alpha: 0.85),
+                          letterSpacing: 0.3,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 40),
+                      // Loading indicator
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                          strokeWidth: 2.5,
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: 0.15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -147,8 +155,10 @@ class _CurvedUnderlinePainter extends CustomPainter {
     final path = Path();
     path.moveTo(0, size.height / 2);
     path.quadraticBezierTo(
-      size.width / 2, size.height,
-      size.width, size.height / 2,
+      size.width / 2,
+      size.height,
+      size.width,
+      size.height / 2,
     );
     canvas.drawPath(path, paint);
   }

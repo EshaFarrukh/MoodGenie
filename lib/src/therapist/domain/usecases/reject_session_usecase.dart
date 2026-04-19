@@ -1,4 +1,3 @@
-import '../entities/session_entity.dart';
 import '../repositories/session_repository.dart';
 
 /// Use case for rejecting a therapy session request
@@ -23,7 +22,7 @@ class RejectSessionUseCase {
     // Validate session can be rejected
     if (!session.canBeRejected()) {
       throw StateError(
-        'Session cannot be rejected. Current status: ${session.status.displayName}'
+        'Session cannot be rejected. Current status: ${session.status.displayName}',
       );
     }
 
@@ -42,7 +41,9 @@ class RejectSessionUseCase {
       final lowerReason = reason.toLowerCase();
       for (final word in inappropriateWords) {
         if (lowerReason.contains(word)) {
-          throw ArgumentError('Rejection reason contains inappropriate content');
+          throw ArgumentError(
+            'Rejection reason contains inappropriate content',
+          );
         }
       }
     }
@@ -57,7 +58,10 @@ class RejectSessionUseCase {
   }
 
   /// Convenience method for rejecting with predefined reasons
-  Future<void> rejectWithReason(String sessionId, RejectionReason reason) async {
+  Future<void> rejectWithReason(
+    String sessionId,
+    RejectionReason reason,
+  ) async {
     await call(sessionId, reason: reason.message);
   }
 }
@@ -69,7 +73,9 @@ enum RejectionReason {
   notSpecialized('This is outside my area of specialization'),
   personalReason('Personal reasons prevent me from accepting this session'),
   technicalIssue('Technical issues prevent me from conducting the session'),
-  patientNotSuitable('This case may require specialized care beyond my expertise');
+  patientNotSuitable(
+    'This case may require specialized care beyond my expertise',
+  );
 
   const RejectionReason(this.message);
 

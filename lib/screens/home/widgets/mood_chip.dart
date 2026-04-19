@@ -4,22 +4,18 @@ class MoodChip extends StatelessWidget {
   final String label;
   final String emoji;
 
-  const MoodChip({
-    super.key,
-    required this.label,
-    required this.emoji,
-  });
+  const MoodChip({super.key, required this.label, required this.emoji});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
+        color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

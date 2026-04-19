@@ -7,14 +7,14 @@ import '../models/auth_models.dart';
 class RoleGate extends StatelessWidget {
   final Widget userHome;
   final Widget therapistDashboard;
-  final Widget loginScreen;
+  final Widget roleSelectionScreen;
   final Widget splashScreen;
 
   const RoleGate({
     super.key,
     required this.userHome,
     required this.therapistDashboard,
-    required this.loginScreen,
+    required this.roleSelectionScreen,
     required this.splashScreen,
   });
 
@@ -38,12 +38,11 @@ class RoleGate extends StatelessWidget {
                 return therapistDashboard;
               case UserRole.user:
               case UserRole.admin:
-              default:
                 return userHome;
             }
 
           case AuthStatus.unauthenticated:
-            return loginScreen;
+            return roleSelectionScreen;
         }
       },
     );
@@ -51,12 +50,10 @@ class RoleGate extends StatelessWidget {
 }
 
 class AuthBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context, AuthState state, AppUser? user) builder;
+  final Widget Function(BuildContext context, AuthState state, AppUser? user)
+  builder;
 
-  const AuthBuilder({
-    super.key,
-    required this.builder,
-  });
+  const AuthBuilder({super.key, required this.builder});
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +84,7 @@ class AuthLoadingOverlay extends StatelessWidget {
             child,
             if (authService.isLoading)
               Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

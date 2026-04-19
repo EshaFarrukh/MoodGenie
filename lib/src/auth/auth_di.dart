@@ -1,4 +1,3 @@
-import 'models/user_model.dart';
 import 'repositories/auth_repository.dart';
 import 'usecases/auth_usecases.dart';
 import 'usecases/user_signup_usecase.dart';

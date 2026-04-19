@@ -22,10 +22,12 @@ class WatchTherapistSessionsUseCase {
     return call(therapistId).map((sessions) {
       final now = DateTime.now();
       return sessions
-          .where((session) =>
-              session.scheduledAt.isAfter(now) &&
-              (session.status == SessionStatus.requested ||
-               session.status == SessionStatus.accepted))
+          .where(
+            (session) =>
+                session.scheduledAt.isAfter(now) &&
+                (session.status == SessionStatus.requested ||
+                    session.status == SessionStatus.confirmed),
+          )
           .toList()
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     });
@@ -47,16 +49,19 @@ class WatchTherapistSessionsUseCase {
       return sessions
           .where((session) => session.status == SessionStatus.completed)
           .toList()
-        ..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt)); // Most recent first
+        ..sort(
+          (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
+        ); // Most recent first
     });
   }
 
   /// Watches sessions by status for a therapist
-  Stream<List<SessionEntity>> byStatus(String therapistId, SessionStatus status) {
+  Stream<List<SessionEntity>> byStatus(
+    String therapistId,
+    SessionStatus status,
+  ) {
     return call(therapistId).map((sessions) {
-      return sessions
-          .where((session) => session.status == status)
-          .toList()
+      return sessions.where((session) => session.status == status).toList()
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     });
   }

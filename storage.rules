@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function roomHasParticipant(roomId) {
+      return signedIn() &&
+        (
+          roomId.matches(request.auth.uid + '_.*') ||
+          roomId.matches('.*_' + request.auth.uid)
+        );
+    }
+
+    match /therapist_chats/{roomId}/{uploaderId}/{allPaths=**} {
+      allow read: if roomHasParticipant(roomId);
+      allow write: if roomHasParticipant(roomId) &&
+        uploaderId == request.auth.uid;
+    }
+  }
+}

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Enum for session status
 enum SessionStatus {
   requested,
-  accepted,
+  confirmed,
   rejected,
   completed,
   cancelled,
@@ -13,8 +13,8 @@ enum SessionStatus {
     switch (this) {
       case SessionStatus.requested:
         return 'Requested';
-      case SessionStatus.accepted:
-        return 'Accepted';
+      case SessionStatus.confirmed:
+        return 'Confirmed';
       case SessionStatus.rejected:
         return 'Rejected';
       case SessionStatus.completed:
@@ -27,10 +27,26 @@ enum SessionStatus {
   }
 
   static SessionStatus fromString(String status) {
-    return SessionStatus.values.firstWhere(
-      (s) => s.name == status,
-      orElse: () => SessionStatus.requested,
-    );
+    switch (status.trim().toLowerCase()) {
+      case 'pending':
+      case 'requested':
+        return SessionStatus.requested;
+      case 'accepted':
+      case 'confirmed':
+        return SessionStatus.confirmed;
+      case 'rejected':
+        return SessionStatus.rejected;
+      case 'completed':
+        return SessionStatus.completed;
+      case 'cancelled':
+      case 'canceled':
+        return SessionStatus.cancelled;
+      case 'no_show':
+      case 'noshow':
+        return SessionStatus.noShow;
+      default:
+        return SessionStatus.requested;
+    }
   }
 }
 
@@ -59,7 +75,9 @@ class SessionEntity {
   });
 
   /// Creates entity from Firestore document
-  factory SessionEntity.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory SessionEntity.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data()!;
 
     return SessionEntity(
@@ -126,7 +144,9 @@ class SessionEntity {
       errors.add('Therapist ID cannot be empty');
     }
 
-    if (scheduledAt.isBefore(DateTime.now().subtract(const Duration(minutes: 15)))) {
+    if (scheduledAt.isBefore(
+      DateTime.now().subtract(const Duration(minutes: 15)),
+    )) {
       errors.add('Session cannot be scheduled in the past');
     }
 
@@ -152,7 +172,7 @@ class SessionEntity {
   /// Checks if the session can be cancelled
   bool canBeCancelled() {
     return status == SessionStatus.requested ||
-           status == SessionStatus.accepted;
+        status == SessionStatus.confirmed;
   }
 
   /// Checks if the session can be accepted
@@ -167,8 +187,8 @@ class SessionEntity {
 
   /// Checks if the session can be completed
   bool canBeCompleted() {
-    return status == SessionStatus.accepted &&
-           DateTime.now().isAfter(scheduledAt);
+    return status == SessionStatus.confirmed &&
+        DateTime.now().isAfter(scheduledAt);
   }
 
   /// Gets the duration until the session starts
@@ -185,8 +205,8 @@ class SessionEntity {
 
   /// Checks if the session is overdue (should have been completed)
   bool get isOverdue {
-    return status == SessionStatus.accepted &&
-           DateTime.now().isAfter(scheduledAt.add(const Duration(hours: 1)));
+    return status == SessionStatus.confirmed &&
+        DateTime.now().isAfter(scheduledAt.add(const Duration(hours: 1)));
   }
 
   @override

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../src/theme/app_theme.dart';
 
@@ -23,40 +22,44 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isTranslucent = gradientColors == null;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.l),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: isTranslucent ? 16 : 10, sigmaY: isTranslucent ? 16 : 10),
-        child: Container(
-          margin: isTranslucent ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 4),
-          padding: padding ?? const EdgeInsets.all(18),
-          width: isTranslucent ? double.infinity : null,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.l),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isTranslucent
-                  ? [
-                      const Color(0xFFFFFFFF).withOpacity(0.25),
-                      const Color(0xFFE8DAFF).withOpacity(0.20),
-                    ]
-                  : [
-                      gradientColors![0].withOpacity(0.90),
-                      gradientColors![1].withOpacity(0.82),
-                    ],
-            ),
-            border: Border.all(
-              color: Colors.white.withOpacity(isTranslucent ? 0.6 : 0.35),
-              width: isTranslucent ? 1.5 : 1,
-            ),
-            boxShadow: isTranslucent
-                ? AppShadows.card()
-                : AppShadows.soft(),
-          ),
-          child: child,
+    return Container(
+      margin: isTranslucent
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(vertical: 4),
+      padding: padding ?? const EdgeInsets.all(18),
+      width: isTranslucent ? double.infinity : null,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.l),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isTranslucent
+              ? [
+                  Colors.white.withValues(alpha: 0.95),
+                  Colors.white.withValues(alpha: 0.88),
+                ]
+              : [
+                  gradientColors![0].withValues(alpha: 0.90),
+                  gradientColors![1].withValues(alpha: 0.82),
+                ],
         ),
+        boxShadow: isTranslucent
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: gradientColors![0].withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
+      child: child,
     );
   }
 }

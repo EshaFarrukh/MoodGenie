@@ -31,7 +31,7 @@ class UpdateAvailabilityUseCase {
       for (int j = i + 1; j < slots.length; j++) {
         if (slots[i].overlapsWith(slots[j])) {
           throw ValidationException([
-            'Slots ${i + 1} and ${j + 1} overlap: ${slots[i]} and ${slots[j]}'
+            'Slots ${i + 1} and ${j + 1} overlap: ${slots[i]} and ${slots[j]}',
           ]);
         }
       }
@@ -45,7 +45,7 @@ class UpdateAvailabilityUseCase {
     for (int i = 0; i < slots.length; i++) {
       if (slots[i].startAt.isBefore(now)) {
         throw ValidationException([
-          'Slot ${i + 1}: Cannot set availability in the past'
+          'Slot ${i + 1}: Cannot set availability in the past',
         ]);
       }
     }
@@ -60,7 +60,8 @@ class UpdateAvailabilityUseCase {
 
     // Group slots by day
     for (final slot in slots) {
-      final dateKey = '${slot.startAt.year}-${slot.startAt.month}-${slot.startAt.day}';
+      final dateKey =
+          '${slot.startAt.year}-${slot.startAt.month}-${slot.startAt.day}';
       dailySlots.putIfAbsent(dateKey, () => []).add(slot);
     }
 
@@ -81,7 +82,8 @@ class UpdateAvailabilityUseCase {
         totalMinutes += slot.endAt.difference(slot.startAt).inMinutes;
       }
 
-      if (totalMinutes > 480) { // 8 hours
+      if (totalMinutes > 480) {
+        // 8 hours
         errors.add('Cannot work more than 8 hours on $date');
       }
 

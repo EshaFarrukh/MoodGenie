@@ -11,8 +11,21 @@ class SignUpTherapistUseCase {
     required String email,
     required String password,
     required String name,
+    required String professionalTitle,
+    required String licenseNumber,
+    required String licenseIssuingAuthority,
+    required String licenseRegion,
+    required DateTime licenseExpiresAt,
+    required String credentialEvidenceSummary,
   }) async {
-    if (email.isEmpty || password.isEmpty || name.isEmpty) {
+    if (email.isEmpty ||
+        password.isEmpty ||
+        name.isEmpty ||
+        professionalTitle.isEmpty ||
+        licenseNumber.isEmpty ||
+        licenseIssuingAuthority.isEmpty ||
+        licenseRegion.isEmpty ||
+        credentialEvidenceSummary.isEmpty) {
       throw const InvalidEmailFailure();
     }
 
@@ -25,6 +38,12 @@ class SignUpTherapistUseCase {
       password,
       role: UserRole.therapist,
       name: name,
+      therapistProfessionalTitle: professionalTitle,
+      therapistLicenseNumber: licenseNumber,
+      therapistLicenseIssuingAuthority: licenseIssuingAuthority,
+      therapistLicenseRegion: licenseRegion,
+      therapistLicenseExpiresAt: licenseExpiresAt,
+      therapistCredentialEvidenceSummary: credentialEvidenceSummary,
     );
   }
 }
@@ -34,10 +53,7 @@ class SignInUseCase {
 
   SignInUseCase(this._repository);
 
-  Future<void> call({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> call({required String email, required String password}) async {
     if (email.isEmpty || password.isEmpty) {
       throw const InvalidEmailFailure();
     }

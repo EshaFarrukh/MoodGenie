@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:moodgenie/src/theme/app_background.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,8 +7,7 @@ import 'package:flutter/material.dart';
 import '../../src/theme/app_theme.dart';
 import '../home/widgets/glass_card.dart';
 import 'appointment_booking_screen.dart';
-
-// ... imports remain the same
+import '../../src/auth/models/user_model.dart';
 
 class TherapistListScreen extends StatefulWidget {
   const TherapistListScreen({super.key});
@@ -19,141 +17,9 @@ class TherapistListScreen extends StatefulWidget {
 }
 
 class _TherapistListScreenState extends State<TherapistListScreen> {
-  final _therapistsRef = FirebaseFirestore.instance.collection('therapists');
-
-  @override
-  void initState() {
-    super.initState();
-    // Automatically seed data on screen load to ensure updated content
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _seedSampleTherapists();
-    });
-  }
-
-  Future<void> _seedSampleTherapists() async {
-    final batch = FirebaseFirestore.instance.batch();
-    final now = DateTime.now();
-
-    // Delete old American profiles
-    batch.delete(_therapistsRef.doc('dr_sarah_chen'));
-    batch.delete(_therapistsRef.doc('dr_michael_rodriguez'));
-    batch.delete(_therapistsRef.doc('dr_emily_johnson'));
-    batch.delete(_therapistsRef.doc('dr_james_wilson'));
-    batch.delete(_therapistsRef.doc('dr_lisa_patel'));
-
-
-
-
-    // Dr. Ayesha Khan
-    batch.set(
-      _therapistsRef.doc('dr_ayesha_khan'),
-      {
-        'name': 'Dr. Ayesha Khan',
-        'specialty': 'Child & Adolescent',
-        'yearsExperience': 9,
-        'pricePerSession': 2500,
-        'rating': 4.9,
-        'nextAvailableAt': Timestamp.fromDate(now.add(const Duration(hours: 4))),
-        'availabilitySlots': [
-          Timestamp.fromDate(now.add(const Duration(days: 1, hours: 11))),
-          Timestamp.fromDate(now.add(const Duration(days: 1, hours: 16))),
-        ],
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    // Dr. Fatima Ali (was Dr. Sarah Chen)
-    batch.set(
-      _therapistsRef.doc('dr_fatima_ali'),
-      {
-        'name': 'Dr. Fatima Ali',
-        'specialty': 'Anxiety & Stress',
-        'yearsExperience': 8,
-        'pricePerSession': 2000,
-        'rating': 4.9,
-        'nextAvailableAt': Timestamp.fromDate(now.add(const Duration(hours: 3))),
-        'availabilitySlots': [
-          Timestamp.fromDate(now.add(const Duration(days: 1, hours: 10))),
-          Timestamp.fromDate(now.add(const Duration(days: 1, hours: 14))),
-          Timestamp.fromDate(now.add(const Duration(days: 2, hours: 11))),
-        ],
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    // Dr. Ahmed Hassan (was Dr. Michael Rodriguez)
-    batch.set(
-      _therapistsRef.doc('dr_ahmed_hassan'),
-      {
-        'name': 'Dr. Ahmed Hassan',
-        'specialty': 'Depression & Mood',
-        'yearsExperience': 12,
-        'pricePerSession': 2800,
-        'rating': 4.8,
-        'nextAvailableAt': Timestamp.fromDate(now.add(const Duration(days: 1, hours: 2))),
-        'availabilitySlots': [
-          Timestamp.fromDate(now.add(const Duration(days: 1, hours: 9))),
-          Timestamp.fromDate(now.add(const Duration(days: 1, hours: 15))),
-        ],
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    // Dr. Sana Yousuf (was Dr. Emily Johnson)
-    batch.set(
-      _therapistsRef.doc('dr_sana_yousuf'),
-      {
-        'name': 'Dr. Sana Yousuf',
-        'specialty': 'Family Therapy',
-        'yearsExperience': 15,
-        'pricePerSession': 3000,
-        'rating': 5.0,
-        'nextAvailableAt': Timestamp.fromDate(now.add(const Duration(hours: 6))),
-        'availabilitySlots': [
-          Timestamp.fromDate(now.add(const Duration(days: 2, hours: 10))),
-          Timestamp.fromDate(now.add(const Duration(days: 3, hours: 14))),
-        ],
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    // Dr. Bilal Ahmed (was Dr. James Wilson)
-    batch.set(
-      _therapistsRef.doc('dr_bilal_ahmed'),
-      {
-        'name': 'Dr. Bilal Ahmed',
-        'specialty': 'Cognitive Behavioral',
-        'yearsExperience': 6,
-        'pricePerSession': 1500,
-        'rating': 4.7,
-        'nextAvailableAt': Timestamp.fromDate(now.add(const Duration(days: 2, hours: 4))),
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    // Dr. Zainab Malik (was Dr. Lisa Patel)
-    batch.set(
-      _therapistsRef.doc('dr_zainab_malik'),
-      {
-        'name': 'Dr. Zainab Malik',
-        'specialty': 'Trauma & PTSD',
-        'yearsExperience': 10,
-        'pricePerSession': 2200,
-        'rating': 4.9,
-        'nextAvailableAt': Timestamp.fromDate(now.add(const Duration(hours: 1))),
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    await batch.commit();
-    // Silent update to ensure smooth UX
-  }
+  final _therapistsRef = FirebaseFirestore.instance.collection(
+    'public_therapists',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +30,7 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-             // Background with app theme gradient
+            // Background with app theme gradient
             Positioned.fill(
               child: Container(
                 decoration: const BoxDecoration(
@@ -180,9 +46,7 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
               ),
             ),
             // Background image overlay
-            const Positioned.fill(
-              child: AppBackground(),
-            ),
+            const Positioned.fill(child: AppBackground()),
             SafeArea(
               child: Column(
                 children: [
@@ -193,7 +57,10 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
                   Expanded(
                     child: Center(
                       child: GlassCard(
-                        gradientColors: [Colors.white.withOpacity(0.9), Colors.white.withOpacity(0.7)],
+                        gradientColors: [
+                          Colors.white.withValues(alpha: 0.9),
+                          Colors.white.withValues(alpha: 0.7),
+                        ],
                         child: const Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -255,9 +122,7 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
           ),
 
           // Background image overlay
-          const Positioned.fill(
-            child: AppBackground(),
-          ),
+          const Positioned.fill(child: AppBackground()),
 
           // Content
           SafeArea(
@@ -273,10 +138,7 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
                     children: [
                       const _ProfessionalSupportCard(),
                       const SizedBox(height: 14),
-                      _TherapistsSection(
-                        therapistsRef: _therapistsRef,
-                        onSeedData: _seedSampleTherapists,
-                      ),
+                      _TherapistsSection(therapistsRef: _therapistsRef),
                       const SizedBox(height: 16),
                       const _ImmediateHelpCard(),
                     ],
@@ -324,7 +186,7 @@ class _ProfessionalSupportCard extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Connect with licensed therapists for mental health support and guidance.',
+                  'Connect with credential-verified therapists for mental health support and guidance.',
                   style: TextStyle(
                     fontSize: 12.5,
                     color: AppColors.textSecondary,
@@ -341,18 +203,52 @@ class _ProfessionalSupportCard extends StatelessWidget {
 }
 
 class _TherapistsSection extends StatelessWidget {
-  const _TherapistsSection({
-    required this.therapistsRef,
-    required this.onSeedData,
-  });
-
+  const _TherapistsSection({required this.therapistsRef});
   final CollectionReference<Map<String, dynamic>> therapistsRef;
-  final VoidCallback onSeedData;
+
+  Stream<List<TherapistProfile>> _getCombinedTherapistsStream() {
+    return therapistsRef.snapshots().asyncMap((therapistSnap) async {
+      final visibleProfiles =
+          therapistSnap.docs
+              .map((doc) => TherapistProfile.fromMap(doc.data(), doc.id))
+              .where(
+                (profile) =>
+                    profile.isApproved &&
+                    profile.acceptingNewPatients &&
+                    profile.credentialVerificationStatus == 'verified',
+              )
+              .toList();
+
+      if (visibleProfiles.isEmpty) {
+        return <TherapistProfile>[];
+      }
+
+      final liveFlags = await Future.wait(
+        visibleProfiles.map((profile) async {
+          try {
+            final therapistSnapshot = await FirebaseFirestore.instance
+                .collection('therapists')
+                .doc(profile.therapistId)
+                .get();
+            return therapistSnapshot.exists;
+          } catch (_) {
+            return false;
+          }
+        }),
+      );
+
+      final profiles = <TherapistProfile>[
+        for (var index = 0; index < visibleProfiles.length; index++)
+          if (liveFlags[index]) visibleProfiles[index],
+      ]..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+      return profiles;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: therapistsRef.orderBy('rating', descending: true).snapshots(),
+    return StreamBuilder<List<TherapistProfile>>(
+      stream: _getCombinedTherapistsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -375,35 +271,36 @@ class _TherapistsSection extends StatelessWidget {
           );
         }
 
-        final docs = snapshot.data?.docs ?? [];
-        if (docs.isEmpty) {
+        final therapistProfiles = snapshot.data ?? [];
+        if (therapistProfiles.isEmpty) {
           return GlassCard(
-            gradientColors: [Colors.white, Colors.white],
+            gradientColors: const [Colors.white, Colors.white],
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'No therapists yet',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                const Icon(
+                  Icons.search_off,
+                  size: 48,
+                  color: AppColors.textSecondary,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 16),
                 const Text(
-                  'Add therapist documents in Firestore, or tap below to insert sample data.',
-                  style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: onSeedData,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add sample therapists'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentCyan,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
+                  'No therapists available right now.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
                   ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Verified therapists will appear here once their profiles have been reviewed.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -412,12 +309,11 @@ class _TherapistsSection extends StatelessWidget {
 
         return Column(
           children: [
-            for (final doc in docs) ...[
+            for (final data in therapistProfiles) ...[
               Builder(
                 builder: (context) {
                   try {
-                    final therapist = Therapist.fromDoc(doc);
-                    return _TherapistCard(therapist: therapist);
+                    return _TherapistCard(profile: data);
                   } catch (e) {
                     // If there's an error parsing a specific therapist, show an error card
                     return GlassCard(
@@ -427,7 +323,11 @@ class _TherapistsSection extends StatelessWidget {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red, size: 20),
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                                size: 20,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'Error loading therapist',
@@ -441,12 +341,18 @@ class _TherapistsSection extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Document ID: ${doc.id}',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            'Therapist ID: ${data.therapistId}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           Text(
                             'Error: $e',
-                            style: const TextStyle(fontSize: 11, color: Colors.red),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.red,
+                            ),
                           ),
                         ],
                       ),
@@ -464,17 +370,28 @@ class _TherapistsSection extends StatelessWidget {
 }
 
 class _TherapistCard extends StatelessWidget {
-  const _TherapistCard({required this.therapist});
+  const _TherapistCard({required this.profile});
 
-  final Therapist therapist;
+  final TherapistProfile profile;
 
   @override
   Widget build(BuildContext context) {
-    final nextSlot = therapist.nextAvailableAt;
-    final nextText = nextSlot == null ? 'No slots listed' : _formatNextSlot(nextSlot);
+    final nextSlot = profile.nextAvailableAt;
+    final nextText = nextSlot == null
+        ? 'No slots listed'
+        : _formatNextSlot(nextSlot);
+
+    final name = profile.displayName ?? 'Therapist';
+    final initials = name
+        .split(' ')
+        .where((s) => s.isNotEmpty)
+        .take(2)
+        .map((s) => s[0])
+        .join()
+        .toUpperCase();
 
     return GlassCard(
-      gradientColors: [Colors.white, Colors.white.withOpacity(0.8)],
+      gradientColors: [Colors.white, Colors.white.withValues(alpha: 0.8)],
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -482,7 +399,7 @@ class _TherapistCard extends StatelessWidget {
             radius: 22,
             backgroundColor: AppColors.pillCyan,
             child: Text(
-              therapist.initials,
+              initials,
               style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 color: AppColors.primary,
@@ -498,24 +415,28 @@ class _TherapistCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        therapist.name,
+                        name,
                         style: const TextStyle(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
-                    const Icon(Icons.star_rounded, size: 18, color: AppColors.accentCyan),
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 18,
+                      color: AppColors.accentCyan,
+                    ),
                     const SizedBox(width: 2),
                     Text(
-                      therapist.rating.toStringAsFixed(1),
+                      (profile.rating ?? 5.0).toStringAsFixed(1),
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  therapist.specialty,
+                  profile.specialty ?? 'General Practice',
                   style: const TextStyle(
                     fontSize: 12.5,
                     color: AppColors.textSecondary,
@@ -526,9 +447,19 @@ class _TherapistCard extends StatelessWidget {
                   spacing: 10,
                   runSpacing: 6,
                   children: [
-                    _Pill(icon: Icons.work_outline, text: '${therapist.yearsExperience} years'),
-                    _Pill(icon: Icons.payments_outlined, text: 'PKR ${therapist.pricePerSession}/session'),
-                    _Pill(icon: Icons.schedule, text: nextText, iconColor: Colors.green),
+                    _Pill(
+                      icon: Icons.work_outline,
+                      text: '${profile.yearsExperience ?? 0} years',
+                    ),
+                    _Pill(
+                      icon: Icons.payments_outlined,
+                      text: 'PKR ${profile.pricePerSession ?? 2500}/session',
+                    ),
+                    _Pill(
+                      icon: Icons.schedule,
+                      text: nextText,
+                      iconColor: Colors.green,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -539,14 +470,18 @@ class _TherapistCard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => AppointmentBookingScreen(therapistId: therapist.id),
+                          builder: (_) => AppointmentBookingScreen(
+                            therapistId: profile.therapistId,
+                          ),
                         ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accentCyan,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     child: const Text('Book Now'),
                   ),
@@ -561,9 +496,11 @@ class _TherapistCard extends StatelessWidget {
 
   static String _formatNextSlot(DateTime dt) {
     final now = DateTime.now();
-    final isToday = now.year == dt.year && now.month == dt.month && now.day == dt.day;
+    final isToday =
+        now.year == dt.year && now.month == dt.month && now.day == dt.day;
     final tmr = now.add(const Duration(days: 1));
-    final isTomorrow = tmr.year == dt.year && tmr.month == dt.month && tmr.day == dt.day;
+    final isTomorrow =
+        tmr.year == dt.year && tmr.month == dt.month && tmr.day == dt.day;
 
     final hh = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
     final mm = dt.minute.toString().padLeft(2, '0');
@@ -574,9 +511,7 @@ class _TherapistCard extends StatelessWidget {
     if (isTomorrow) return 'Tomorrow $time';
     return '${dt.day}/${dt.month} $time';
   }
-
-
-  }
+}
 
 class _Pill extends StatelessWidget {
   const _Pill({required this.icon, required this.text, this.iconColor});
@@ -592,14 +527,17 @@ class _Pill extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pillCyan,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.primary.withOpacity(0.08)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: iconColor ?? AppColors.primary),
           const SizedBox(width: 6),
-          Text(text, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+          ),
         ],
       ),
     );
@@ -620,13 +558,20 @@ class _ImmediateHelpCard extends StatelessWidget {
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
               SizedBox(width: 8),
-              Text('Need immediate help?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+              Text(
+                'Need immediate help?',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+              ),
             ],
           ),
           const SizedBox(height: 6),
           const Text(
             'If you are in danger or experiencing a crisis, contact local emergency services or a trusted person right away.',
-            style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary, height: 1.3),
+            style: TextStyle(
+              fontSize: 12.5,
+              color: AppColors.textSecondary,
+              height: 1.3,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -639,25 +584,31 @@ class _ImmediateHelpCard extends StatelessWidget {
                       end: Alignment.bottomRight,
                       colors: [
                         Colors.redAccent,
-                        Colors.redAccent.withOpacity(0.8),
+                        Colors.redAccent.withValues(alpha: 0.8),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.redAccent.withOpacity(0.3),
+                        color: Colors.redAccent.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () => _showNumberDialog(context, title: 'Crisis Hotline', number: '988'),
+                    onPressed: () => _showNumberDialog(
+                      context,
+                      title: 'Crisis Hotline',
+                      number: '988',
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     child: const Text(
                       'Crisis: 988',
@@ -672,15 +623,21 @@ class _ImmediateHelpCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => _showNumberDialog(context, title: 'Emergency', number: '911'),
+                  onPressed: () => _showNumberDialog(
+                    context,
+                    title: 'Emergency',
+                    number: '911',
+                  ),
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.3),
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
                     foregroundColor: AppColors.textPrimary,
                     side: BorderSide(
-                      color: AppColors.primary.withOpacity(0.6),
+                      color: AppColors.primary.withValues(alpha: 0.6),
                       width: 2,
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   child: Text(
                     'Emergency: 911',
@@ -692,25 +649,32 @@ class _ImmediateHelpCard extends StatelessWidget {
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
   }
 
-  static void _showNumberDialog(BuildContext context, {required String title, required String number}) {
+  static void _showNumberDialog(
+    BuildContext context, {
+    required String title,
+    required String number,
+  }) {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(title),
         content: Text('Call $number from your phone.'),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
 }
-
-
 
 class Therapist {
   Therapist({
@@ -756,8 +720,6 @@ class Therapist {
       }
     }
 
-
-
     // Safe parsing for pricePerSession
     int pricePerSession = 0;
     final price = d['pricePerSession'];
@@ -797,15 +759,10 @@ class Therapist {
 }
 
 class _CustomHeader extends StatelessWidget {
-  const _CustomHeader({
-    required this.title,
-    this.showBack = false,
-    this.onAction,
-  });
+  const _CustomHeader({required this.title, this.showBack = false});
 
   final String title;
   final bool showBack;
-  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -820,17 +777,21 @@ class _CustomHeader extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.primary),
+                child: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
               ),
             )
           else
@@ -848,30 +809,9 @@ class _CustomHeader extends StatelessWidget {
             ),
           ),
 
-          if (onAction != null)
-            GestureDetector(
-              onTap: onAction,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.refresh_rounded, size: 20, color: AppColors.accentCyan),
-              ),
-            )
-          else
-            const SizedBox(width: 40),
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 }
-

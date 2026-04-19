@@ -1,80 +1,164 @@
-# MoodGenie 🧞‍♂️✨
+# MoodGenie
 
-Your AI-powered mental wellness companion. EshaFarrukh/MoodGenie is a Flutter application designed to help users track their moods, gain insights through analytics, chat with a supportive AI, and connect with professional therapists.
+MoodGenie is a production-oriented wellness platform with three operating surfaces in one repo:
 
-## Features
+- a Flutter mobile app for mood tracking, AI emotional-support chat, therapist discovery, booking, and therapist communication
+- a privileged Node backend for secure mutations, AI gateway behavior, data-rights operations, and release-health telemetry
+- a Next.js admin dashboard for therapist approvals, support operations, privacy jobs, AI incident handling, feature governance, and launch readiness
 
-🌟 **Daily Mood Tracking**
-Log your emotional state in under 10 seconds. Select from a variety of moods, set the intensity, and add optional journal notes.
+## Repository surfaces
 
-📊 **Smart Analytics**
-Visualize your emotional journey with interactive charts. Track your 7-day trends, maintain a daily logging streak, and understand your mood patterns over time.
+### Mobile app
+- Flutter + Dart
+- Firebase Auth, Firestore, Storage
+- Provider-based app state with release telemetry, localization scaffolding, and Firebase security rules in repo
 
-💬 **AI Companion Chat**
-Need someone to talk to? The built-in AI chat provides a safe space to express your feelings and receive gentle, supportive wellness guidance.
+### Admin dashboard
+- `apps/admin`
+- Next.js App Router + TypeScript
+- RBAC, audit-aware admin shell, therapist review, privacy jobs, AI ops, appointments, system health, and release-readiness tooling
 
-🧑‍⚕️ **Therapist Connect**
-Browse a curated list of licensed therapists, view their specialties (Anxiety, PTSD, Family Therapy, etc.), and book appointments directly through the app.
+### Backend
+- `backend`
+- Express + Firebase Admin SDK
+- Authenticated AI proxying, secure appointment/chat/call mutations, mobile telemetry ingestion, and privacy workflow orchestration
 
-✨ **Premium Design**
-A beautifully crafted user interface featuring glassmorphism, smooth animations, and a calming purple color palette tailored for mental wellness.
+## Core flows
 
-## Tech Stack
+- User sign up / sign in
+- Mood logging, history, analytics, and profile progress
+- AI support chat with visible degraded/fallback states
+- Therapist onboarding, approval, discovery, booking, therapist chat, and calling
+- Admin review for therapist trust, privacy jobs, AI incidents, and operational readiness
 
-*   **Frontend:** Flutter & Dart
-*   **Backend:** Firebase (Authentication, Cloud Firestore)
-*   **State Management:** Provider
-*   **Key Packages:** `fl_chart`, `shared_preferences`, `google_fonts`
+## Quick start
 
-## Getting Started
-
-### Prerequisites
-
-*   Flutter SDK (v3.10.0 or higher)
-*   Dart SDK
-*   An active Firebase project configured for iOS/Android
-
-### Installation
-
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/EshaFarrukh/MoodGenie.git
-    cd MoodGenie
-    ```
-
-2.  **Install dependencies**
-    ```bash
-    flutter pub get
-    ```
-
-3.  **Run the app**
-    ```bash
-    flutter run
-    ```
-
-## Project Structure
-
-```text
-lib/
-├── screens/
-│   ├── auth/         # Login & Signup flows
-│   ├── chat/         # AI Companion interface
-│   ├── home/         # Dashboard, Navigation, and Profile
-│   ├── mood/         # Tracking, History, and Analytics
-│   ├── splash/       # App initialization
-│   └── therapist/    # Directory and Booking
-├── src/
-│   ├── auth/         # Authentication services & models
-│   ├── services/     # Core application services (MoodRepository)
-│   ├── theme/        # Design system (AppColors, AppRadius)
-│   └── therapist/    # Clean Architecture domain layer for therapists
-└── main.dart         # Entry point & routing
+### Mobile
+```bash
+flutter pub get
+flutter run
 ```
 
-## Privacy & Security
+### Admin
+```bash
+cd apps/admin
+npm install
+npm run dev
+```
 
-MoodGenie respects your privacy. All mood logs, journal entries, and chat conversations are securely stored in Firebase under your personal account and are never shared with third parties.
+The admin dashboard runs locally at `http://127.0.0.1:3001`.
 
----
+### Backend
+```bash
+cd backend
+npm install
+npm start
+```
 
-*Made with 💜 for mental wellness.*
+Copy `backend/.env.example` to `backend/.env` before first setup if you are
+bringing up a fresh local backend.
+
+## One-command local stack
+
+```bash
+./scripts/local_stack.sh start
+```
+
+This boots Ollama, the local backend, the admin dashboard on `http://127.0.0.1:3001`,
+the iOS Simulator, and the Flutter app with an explicit local `BACKEND_URL`.
+
+Useful commands:
+
+```bash
+./scripts/local_stack.sh status
+./scripts/local_stack.sh stop
+```
+
+If you want shell-level commands from any directory on your Mac, install the
+global wrappers once and then use:
+
+```bash
+run moodgenie
+status moodgenie
+stop moodgenie
+gcloud --version
+```
+
+On first run, the launcher will create `apps/admin/.env.local` from
+`apps/admin/.env.example` if it does not exist yet and backfill the committed
+public Firebase web config automatically.
+
+The launcher now always uses real Firebase auth. For real local auth to work
+end to end, you still need one Firebase Admin credential source:
+
+- `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` in `apps/admin/.env.local`
+- `GOOGLE_APPLICATION_CREDENTIALS`
+- or `gcloud auth application-default login`
+
+## Notification system setup
+
+The repo now includes:
+
+- push + in-app notification infrastructure in the Flutter app
+- backend-managed notification preferences, inbox docs, delivery logs, retry queues, and scheduled jobs
+- appointment lifecycle notifications for both users and therapists
+- deterministic mood forecasting with guarded AI wellness copy
+- admin notification-health visibility under `Notification Ops`
+
+To finish live delivery outside the repo, configure:
+
+- Firebase Cloud Messaging / APNs for real device push delivery
+- Postmark via `POSTMARK_SERVER_TOKEN` and `POSTMARK_FROM_EMAIL`
+- `INTERNAL_JOB_SECRET` for internal scheduled job execution
+- Google Cloud Scheduler hitting:
+  - `/internal/jobs/generate-mood-forecasts`
+  - `/internal/jobs/send-daily-mood-reminders`
+  - `/internal/jobs/send-appointment-reminders`
+  - `/internal/jobs/process-notification-retries`
+
+For local manual job testing:
+
+```bash
+INTERNAL_JOB_SECRET=your-secret ./scripts/notification_jobs_local.sh all
+```
+
+## Quality gates
+
+### Core validation
+```bash
+flutter test
+flutter analyze --no-fatal-infos
+cd firebase_tests && npm test
+cd apps/admin && npm run build
+cd backend && npm run check
+```
+
+### Release smoke
+```bash
+./scripts/release_smoke.sh
+```
+
+## Release operations docs
+
+- `docs/release/release_candidate_checklist.md`
+- `docs/release/uat_matrix.md`
+- `docs/release/incident_playbooks.md`
+- `docs/release/launch_cutover_plan.md`
+- `docs/release/production_identity_and_signing.md`
+
+## Project structure
+
+```text
+apps/admin/        Next.js control plane
+backend/           privileged API and operational service layer
+firebase_tests/    Firebase rules test suite
+lib/               Flutter mobile application
+docs/release/      launch, UAT, incident, and cutover runbooks
+scripts/           repeatable release smoke scripts
+```
+
+## Current operational expectations
+
+- Firebase rules and indexes are source-controlled in this repo.
+- Privileged therapist approval and privacy workflows are expected to run through admin surfaces, not direct console edits.
+- AI incidents, privacy jobs, and launch posture should be monitored from the admin dashboard before public release.

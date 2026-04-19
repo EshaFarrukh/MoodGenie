@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../src/theme/app_theme.dart';
 import '../../src/auth/services/auth_service.dart';
 import '../../src/auth/widgets/auth_widgets.dart';
-import '../../src/auth/models/auth_models.dart';
 
 class TherapistSignUpScreen extends StatefulWidget {
   const TherapistSignUpScreen({super.key});
@@ -17,6 +16,12 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _professionalTitleController = TextEditingController();
+  final _licenseNumberController = TextEditingController();
+  final _licenseAuthorityController = TextEditingController();
+  final _licenseRegionController = TextEditingController();
+  final _licenseExpiryController = TextEditingController();
+  final _credentialEvidenceController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -28,9 +33,29 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _professionalTitleController.dispose();
+    _licenseNumberController.dispose();
+    _licenseAuthorityController.dispose();
+    _licenseRegionController.dispose();
+    _licenseExpiryController.dispose();
+    _credentialEvidenceController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  DateTime? _parseLicenseExpiry() {
+    final raw = _licenseExpiryController.text.trim();
+    if (raw.isEmpty) {
+      return null;
+    }
+
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) {
+      return null;
+    }
+
+    return DateTime(parsed.year, parsed.month, parsed.day);
   }
 
   Future<void> _signUp() async {
@@ -45,25 +70,38 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
       return;
     }
 
-    final authService = context.read<AuthService>();
-    await authService.signUpTherapist(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-      name: _nameController.text.trim(),
-    );
-
-    if (mounted) {
-      if (authService.state.status == AuthStatus.authenticated) {
-        Navigator.pop(context);
-      } else if (authService.state.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authService.state.error!),
-            backgroundColor: Colors.red,
+    final licenseExpiresAt = _parseLicenseExpiry();
+    if (licenseExpiresAt == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Enter a valid license expiry date in YYYY-MM-DD format',
           ),
-        );
-      }
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
+
+    final registrationSuccess = await context
+        .read<AuthService>()
+        .signUpTherapist(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          name: _nameController.text.trim(),
+          professionalTitle: _professionalTitleController.text.trim(),
+          licenseNumber: _licenseNumberController.text.trim(),
+          licenseIssuingAuthority: _licenseAuthorityController.text.trim(),
+          licenseRegion: _licenseRegionController.text.trim(),
+          licenseExpiresAt: licenseExpiresAt,
+          credentialEvidenceSummary: _credentialEvidenceController.text.trim(),
+        );
+
+    if (!mounted || registrationSuccess == null) {
+      return;
+    }
+
+    Navigator.of(context).pop(registrationSuccess);
   }
 
   @override
@@ -89,9 +127,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
           ),
 
           // Background image overlay
-          const Positioned.fill(
-            child: AppBackground(),
-          ),
+          const Positioned.fill(child: AppBackground()),
 
           // Content
           SafeArea(
@@ -139,18 +175,18 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              AppColors.primary.withOpacity(0.1),
-                              AppColors.accentCyan.withOpacity(0.05),
+                              AppColors.primary.withValues(alpha: 0.1),
+                              AppColors.accentCyan.withValues(alpha: 0.05),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.2),
+                            color: AppColors.primary.withValues(alpha: 0.2),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.1),
+                              color: AppColors.primary.withValues(alpha: 0.1),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -173,7 +209,9 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.3),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),
@@ -200,7 +238,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                                   ),
                                   SizedBox(height: 6),
                                   Text(
-                                    'Your credentials will be reviewed before approval',
+                                    'Submit your license details now. You will finish your profile after sign up, and our team will manually verify everything before patients can see you.',
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: AppColors.textSecondary,
@@ -242,8 +280,100 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter your email';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value)) {
                             return 'Please enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildTextField(
+                        controller: _professionalTitleController,
+                        label: 'Professional Title',
+                        icon: Icons.badge_outlined,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your professional title';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildTextField(
+                        controller: _licenseNumberController,
+                        label: 'License Number',
+                        icon: Icons.verified_user_outlined,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your license number';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildTextField(
+                        controller: _licenseAuthorityController,
+                        label: 'Licensing Authority',
+                        icon: Icons.account_balance_outlined,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your licensing authority';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildTextField(
+                        controller: _licenseRegionController,
+                        label: 'License Region',
+                        icon: Icons.public_outlined,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your license region';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildTextField(
+                        controller: _licenseExpiryController,
+                        label: 'License Expiry (YYYY-MM-DD)',
+                        icon: Icons.event_available_outlined,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your license expiry date';
+                          }
+                          if (DateTime.tryParse(value.trim()) == null) {
+                            return 'Use YYYY-MM-DD format';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      _buildTextField(
+                        controller: _credentialEvidenceController,
+                        label: 'Credential Evidence Summary',
+                        icon: Icons.description_outlined,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please describe the credential evidence you submitted';
+                          }
+                          if (value.trim().length < 10) {
+                            return 'Please add a little more detail';
                           }
                           return null;
                         },
@@ -257,8 +387,14 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                         icon: Icons.lock_outline,
                         obscureText: _obscurePassword,
                         suffixIcon: IconButton(
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -279,8 +415,15 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                         icon: Icons.lock_outline,
                         obscureText: _obscureConfirmPassword,
                         suffixIcon: IconButton(
-                          onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                          icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(
+                            () => _obscureConfirmPassword =
+                                !_obscureConfirmPassword,
+                          ),
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -301,12 +444,13 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                         children: [
                           Checkbox(
                             value: _acceptedTerms,
-                            onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
+                            onChanged: (value) =>
+                                setState(() => _acceptedTerms = value ?? false),
                             activeColor: AppColors.primary,
                           ),
                           const Expanded(
                             child: Text(
-                              'I agree to the Terms & Conditions and understand that my account will be reviewed for professional verification.',
+                              'I agree to the Terms & Conditions and confirm that the license and credential details I submitted are accurate and belong to me.',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
@@ -328,15 +472,12 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.primary,
-                                AppColors.accentCyan,
-                              ],
+                              colors: [AppColors.primary, AppColors.accentCyan],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
+                                color: AppColors.primary.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -374,13 +515,18 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                             return Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
+                                color: Colors.red.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.3),
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.error_outline, color: Colors.red),
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Colors.red,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -438,7 +584,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -469,17 +615,13 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primary.withOpacity(0.8),
-                  AppColors.accentCyan.withOpacity(0.8),
+                  AppColors.primary.withValues(alpha: 0.8),
+                  AppColors.accentCyan.withValues(alpha: 0.8),
                 ],
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 20,
-            ),
+            child: Icon(icon, color: Colors.white, size: 20),
           ),
           suffixIcon: suffixIcon,
           border: OutlineInputBorder(
@@ -489,16 +631,13 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: AppColors.primary,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -509,7 +648,7 @@ class _TherapistSignUpScreenState extends State<TherapistSignUpScreen> {
             borderSide: const BorderSide(color: Colors.red, width: 2),
           ),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.9),
+          fillColor: Colors.white.withValues(alpha: 0.9),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 16,

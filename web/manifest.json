@@ -1,11 +1,11 @@
 {
-    "name": "moodgenie",
-    "short_name": "moodgenie",
+    "name": "MoodGenie",
+    "short_name": "MoodGenie",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "MoodGenie is a mental wellness app for mood tracking, AI support, and therapist care coordination.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

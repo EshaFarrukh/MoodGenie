@@ -1,5 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+bool _asTherapistBool(dynamic value) {
+  if (value is bool) {
+    return value;
+  }
+  final normalized = value?.toString().trim().toLowerCase();
+  return normalized == 'true' ||
+      normalized == '1' ||
+      normalized == 'yes' ||
+      normalized == 'approved' ||
+      normalized == 'verified' ||
+      normalized == 'active';
+}
+
+bool _resolveTherapistEntityApproval(Map<String, dynamic> data) {
+  if (data.containsKey('isApproved') && data['isApproved'] != null) {
+    return _asTherapistBool(data['isApproved']);
+  }
+
+  final reviewStatus = data['reviewStatus']?.toString().trim().toLowerCase();
+  final accountStatus = data['accountStatus']?.toString().trim().toLowerCase();
+  final verificationStatus =
+      data['credentialVerificationStatus']?.toString().trim().toLowerCase();
+
+  return reviewStatus == 'approved' ||
+      accountStatus == 'active' ||
+      verificationStatus == 'verified';
+}
+
 /// Domain entity representing a therapist in the system
 class TherapistEntity {
   final String therapistId;
@@ -25,13 +53,18 @@ class TherapistEntity {
   });
 
   /// Creates entity from Firestore document
-  factory TherapistEntity.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory TherapistEntity.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data()!;
 
     // Parse availability slots
     final slotsData = data['availabilitySlots'] as List<dynamic>? ?? [];
     final slots = slotsData
-        .map((slot) => AvailabilitySlotEntity.fromMap(slot as Map<String, dynamic>))
+        .map(
+          (slot) =>
+              AvailabilitySlotEntity.fromMap(slot as Map<String, dynamic>),
+        )
         .toList();
 
     return TherapistEntity(
@@ -46,7 +79,7 @@ class TherapistEntity {
       rating: (data['rating'] ?? 0.0) is double
           ? data['rating']
           : double.tryParse(data['rating']?.toString() ?? '0.0') ?? 0.0,
-      isApproved: data['isApproved'] ?? false,
+      isApproved: _resolveTherapistEntityApproval(data),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -58,7 +91,9 @@ class TherapistEntity {
       'name': name,
       'specialization': specialization,
       'experienceYears': experienceYears,
-      'availabilitySlots': availabilitySlots.map((slot) => slot.toMap()).toList(),
+      'availabilitySlots': availabilitySlots
+          .map((slot) => slot.toMap())
+          .toList(),
       'rating': rating,
       'isApproved': isApproved,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -200,7 +235,9 @@ class AvailabilitySlotEntity {
       errors.add('Start time must be before end time');
     }
 
-    if (startAt.isBefore(DateTime.now().subtract(const Duration(minutes: 30)))) {
+    if (startAt.isBefore(
+      DateTime.now().subtract(const Duration(minutes: 30)),
+    )) {
       errors.add('Start time cannot be in the past');
     }
 

@@ -1,4 +1,5 @@
-import '../entities/session_entity.dart';
+import 'package:flutter/foundation.dart';
+
 import '../repositories/session_repository.dart';
 
 /// Use case for completing a therapy session
@@ -23,7 +24,7 @@ class CompleteSessionUseCase {
     // Validate session can be completed
     if (!session.canBeCompleted()) {
       throw StateError(
-        'Session cannot be completed. Current status: ${session.status.displayName}'
+        'Session cannot be completed. Current status: ${session.status.displayName}',
       );
     }
 
@@ -52,17 +53,19 @@ class CompleteSessionUseCase {
 
       // Check for required sections in professional notes
       final lowerNotes = notes.toLowerCase();
-      final hasAssessment = lowerNotes.contains('assess') ||
-                           lowerNotes.contains('evaluat') ||
-                           lowerNotes.contains('progress');
+      final hasAssessment =
+          lowerNotes.contains('assess') ||
+          lowerNotes.contains('evaluat') ||
+          lowerNotes.contains('progress');
 
-      final hasObservation = lowerNotes.contains('observ') ||
-                            lowerNotes.contains('behav') ||
-                            lowerNotes.contains('mood');
+      final hasObservation =
+          lowerNotes.contains('observ') ||
+          lowerNotes.contains('behav') ||
+          lowerNotes.contains('mood');
 
       if (!hasAssessment && !hasObservation) {
         throw ArgumentError(
-          'Completion notes should include assessment or observations'
+          'Completion notes should include assessment or observations',
         );
       }
     }
@@ -71,7 +74,11 @@ class CompleteSessionUseCase {
     final maxSessionTime = sessionStart.add(const Duration(hours: 2));
     if (now.isAfter(maxSessionTime)) {
       // Session is very late - may need special handling
-      print('Warning: Session completed ${now.difference(sessionStart).inMinutes} minutes after scheduled time');
+      if (kDebugMode) {
+        debugPrint(
+          'Session completion is significantly past the scheduled time',
+        );
+      }
     }
 
     // Complete the session
@@ -110,8 +117,9 @@ class CompleteSessionUseCase {
 
   /// Convenience method for emergency completion (session ended abruptly)
   Future<void> completeEmergency(String sessionId, String reason) async {
-    final notes = 'Session ended early due to: $reason. '
-                 'Please schedule follow-up if needed.';
+    final notes =
+        'Session ended early due to: $reason. '
+        'Please schedule follow-up if needed.';
     await call(sessionId, notes: notes);
   }
 }

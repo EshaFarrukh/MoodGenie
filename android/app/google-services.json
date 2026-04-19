@@ -9,10 +9,23 @@
       "client_info": {
         "mobilesdk_app_id": "1:1053666873304:android:e7d52763ab4635f0f86cad",
         "android_client_info": {
-          "package_name": "com.example.moodgenie"
+          "package_name": "com.moodgenie.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1053666873304-qc95lk3q11eeguvfm76a1md46bakpsq3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.moodgenie.app",
+            "certificate_hash": "fd082a8bfff1925601e124701010af2947a97d17"
+          }
+        },
+        {
+          "client_id": "1053666873304-l7u82i41ujqeh021geff0fg2ka2o9uot.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB_vtZ3JVU3CdH2QPkdLQ4VnmLdVASHmmI"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1053666873304-l7u82i41ujqeh021geff0fg2ka2o9uot.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1053666873304-b9talpbhnn71qpmr955v2a2atd2a5g4m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.moodgenie.app"
+              }
+            }
+          ]
         }
       }
     }

@@ -4,11 +4,7 @@ class MoodBar extends StatelessWidget {
   final double height;
   final Color color;
 
-  const MoodBar({
-    super.key,
-    required this.height,
-    required this.color,
-  });
+  const MoodBar({super.key, required this.height, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -17,17 +13,14 @@ class MoodBar extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color,
-            color.withOpacity(0.8),
-          ],
+          colors: [color, color.withValues(alpha: 0.8)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

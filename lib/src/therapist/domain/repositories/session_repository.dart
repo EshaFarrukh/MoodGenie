@@ -42,7 +42,10 @@ abstract class SessionRepository {
   Future<List<SessionEntity>> getUpcomingSessions(String userId);
 
   /// Gets session history for a user
-  Future<List<SessionEntity>> getSessionHistory(String userId, {int limit = 20});
+  Future<List<SessionEntity>> getSessionHistory(
+    String userId, {
+    int limit = 20,
+  });
 
   /// Checks if a time slot is available for booking
   Future<bool> isTimeSlotAvailable(String therapistId, DateTime scheduledAt);

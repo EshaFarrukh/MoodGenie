@@ -1,19 +1,22 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moodgenie/main.dart'; // Ensure this import is correct
+import 'package:moodgenie/l10n/app_localizations.dart';
+import 'package:moodgenie/screens/splash/splash_screen.dart';
+import 'package:flutter/material.dart';
 
 void main() {
-  testWidgets('App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    // We wrap it in a MediaQuery because sometimes widgets need it effectively in tests
-    // But MoodGenieApp creates its own MaterialApp so it should be fine.
-    await tester.pumpWidget(const MoodGenieApp());
+  testWidgets('Splash screen renders branding safely without Firebase', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const SplashScreen(),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
 
-    // Verify that the splash screen or role gate is present
-    // Since Firebase needs initialization, we might hit an error here in a real unit test environment
-    // without mocking Firebase. 
-    // For a basic "smoke test" that just checks if the widget tree builds:
-    
-    expect(find.byType(MoodGenieApp), findsOneWidget);
+    expect(find.text('MoodGenie'), findsOneWidget);
+    expect(find.text('Your AI Mental Wellness Companion'), findsOneWidget);
   });
 }

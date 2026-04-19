@@ -10,8 +10,7 @@
 // - Google button with SVG icon
 //
 // 🔧 Assets you must have:
-// 1) assets/images/login_bg.png    (your dreamy sky background)
-// 2) assets/logo/moodgenielogo.png  (your M logo PNG)
+// 1) assets/logo/moodgenielogo.png  (your M logo PNG)
 // 3) assets/icons/google.svg
 //
 // 🔧 pubspec.yaml
@@ -27,15 +26,10 @@ import 'dart:ui';
 import 'package:moodgenie/src/theme/app_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../src/auth/services/auth_service.dart';
-import '../../src/auth/models/user_model.dart';
-import '../../src/auth/models/auth_models.dart';
 import '../../src/auth/widgets/auth_widgets.dart';
 import 'package:moodgenie/src/theme/app_theme.dart';
-
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key, this.onLoginTap});
@@ -56,15 +50,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _hideConfirm = true;
   bool _loading = false;
   String? _error;
+  AuthService? _authService;
 
   @override
   void dispose() {
+    _authService?.removeListener(_handleAuthStateChanged);
     _nameC.dispose();
     _emailC.dispose();
     _passC.dispose();
     _confirmC.dispose();
     super.dispose();
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final authService = context.read<AuthService>();
+    if (_authService == authService) {
+      return;
+    }
+
+    _authService?.removeListener(_handleAuthStateChanged);
+    _authService = authService;
+    _authService?.addListener(_handleAuthStateChanged);
+    _handleAuthStateChanged();
+  }
+
   Future<void> _signUp() async {
     final name = _nameC.text.trim();
     final email = _emailC.text.trim();
@@ -95,22 +107,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => _error = null);
 
-    final authService = context.read<AuthService>();
-    await authService.signUpUser(
+    final registrationSuccess = await context.read<AuthService>().signUpUser(
       email: email,
       password: password,
       name: name,
     );
 
-    if (mounted) {
-      if (authService.state.status == AuthStatus.authenticated) {
-        Navigator.pop(context);
-      } else if (authService.state.error != null) {
-        setState(() => _error = authService.state.error);
-      }
+    if (!mounted || registrationSuccess == null) {
+      return;
     }
+
+    Navigator.of(context).pop(registrationSuccess);
   }
 
+  void _handleAuthStateChanged() {
+    final authState = _authService?.state;
+    if (!mounted || authState == null) {
+      return;
+    }
+
+    if (_loading == authState.isLoading && _error == authState.error) {
+      return;
+    }
+
+    setState(() {
+      _loading = authState.isLoading;
+      _error = authState.error;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,14 +147,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       body: Stack(
         children: [
           // Background image (full screen)
-          Positioned.fill(
-            child: const AppBackground(),
-          ),
+          Positioned.fill(child: const AppBackground()),
 
           // Soft overlay tint to match screenshot glow
           Positioned.fill(
             child: Container(
-              color: const Color(0xFFBCA6FF).withOpacity(0.08),
+              color: const Color(0xFFBCA6FF).withValues(alpha: 0.08),
             ),
           ),
 
@@ -156,27 +178,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
 
                   // Logo - Directly on background
-                  Container(
+                  SizedBox(
                     width: 100,
                     height: 100,
                     child: Center(
-                      child: Image.asset(
-                        'assets/logo/moodgenielogo.png',
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          // Fallback to M text if image fails to load
-                          return Text(
-                            'M',
-                            style: TextStyle(
-                              fontSize: 60,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFFFF8A5C),
-                              letterSpacing: -2,
-                            ),
-                          );
+                      child: ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [AppColors.primary, AppColors.accentCyan],
+                          ).createShader(bounds);
                         },
+                        blendMode: BlendMode.srcIn,
+                        child: Image.asset(
+                          'assets/logo/moodgenielogo.png',
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Fallback to M text if image fails to load
+                            return const Text(
+                              'M',
+                              style: TextStyle(
+                                fontSize: 60,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
+                                letterSpacing: -2,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -185,23 +217,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   // Title
                   const Text(
-                    'Get Started with MoodGenie',
+                    'Student / Developer Sign Up',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF6A5F88),
+                      fontSize: 27,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.headingDark,
                       height: 1.15,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Create your account',
+                    'Create an account to track your mood',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF8B81A6),
+                      color: AppColors.textSecondary,
                     ),
                   ),
 
@@ -234,9 +267,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           obscureText: _hidePass,
                           textInputAction: TextInputAction.next,
                           suffix: IconButton(
-                            onPressed: () => setState(() => _hidePass = !_hidePass),
+                            onPressed: () =>
+                                setState(() => _hidePass = !_hidePass),
                             icon: Icon(
-                              _hidePass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _hidePass
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: const Color(0xFF9B93B5),
                             ),
                           ),
@@ -249,9 +285,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           obscureText: _hideConfirm,
                           textInputAction: TextInputAction.done,
                           suffix: IconButton(
-                            onPressed: () => setState(() => _hideConfirm = !_hideConfirm),
+                            onPressed: () =>
+                                setState(() => _hideConfirm = !_hideConfirm),
                             icon: Icon(
-                              _hideConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _hideConfirm
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: const Color(0xFF9B93B5),
                             ),
                           ),
@@ -267,12 +306,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               return Column(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Colors.red.withOpacity(0.1),
+                                      color: Colors.red.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: Colors.red.withOpacity(0.3),
+                                        color: Colors.red.withValues(
+                                          alpha: 0.3,
+                                        ),
                                       ),
                                     ),
                                     child: Row(
@@ -304,58 +348,65 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         ),
 
-                        // Sign up button (peach gradient)
+                        // Sign up button (animated gradient glow)
                         AuthBuilder(
                           builder: (context, state, user) {
                             final isLoading = state.isLoading || _loading;
-                            return SizedBox(
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
                               width: double.infinity,
-                              height: 50,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(18),
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    colors: [
-                                      Color(0xFFFFB06A),
-                                      Color(0xFFFF7F72),
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFFFF8A5C).withOpacity(0.28),
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 10),
-                                    ),
+                              height: 54,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    AppColors.primary,
+                                    AppColors.accentCyan,
                                   ],
                                 ),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(
+                                      alpha: isLoading ? 0.1 : 0.35,
                                     ),
+                                    blurRadius: isLoading ? 10 : 25,
+                                    offset: Offset(0, isLoading ? 4 : 12),
                                   ),
-                                  onPressed: isLoading ? null : _signUp,
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2.5,
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(18),
+                                  onTap: isLoading ? null : _signUp,
+                                  splashColor: Colors.white.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                  highlightColor: Colors.white.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  child: Center(
+                                    child: isLoading
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2.5,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Sign up',
+                                            style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                              letterSpacing: 0.5,
+                                            ),
                                           ),
-                                        )
-                                      : const Text(
-                                          'Sign up',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                  ),
                                 ),
                               ),
                             );
@@ -399,7 +450,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Divider OR
                   SizedBox(
                     width: cardWidth,
                     child: Row(
@@ -407,7 +457,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         Expanded(
                           child: Container(
                             height: 1,
-                            color: Colors.white.withOpacity(0.55),
+                            color: Colors.white.withValues(alpha: 0.55),
                           ),
                         ),
                         const Padding(
@@ -423,7 +473,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         Expanded(
                           child: Container(
                             height: 1,
-                            color: Colors.white.withOpacity(0.55),
+                            color: Colors.white.withValues(alpha: 0.55),
                           ),
                         ),
                       ],
@@ -432,14 +482,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Google button (with SVG)
                   SizedBox(
                     width: cardWidth,
                     height: 52,
                     child: _GlassButton(
-                      onTap: () {
-                        // TODO: Google sign-in
-                      },
+                      onTap: _loading
+                          ? null
+                          : () async {
+                              setState(() => _error = null);
+                              await context
+                                  .read<AuthService>()
+                                  .signInWithGoogle();
+                            },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -452,7 +506,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           const Text(
                             'Continue with Google',
                             style: TextStyle(
-                              color: Color(0xFF6A5F88),
+                              color: AppColors.headingDark,
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                             ),
@@ -492,17 +546,17 @@ class _GlassPanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.32),
-            Colors.white.withOpacity(0.18),
+            Colors.white.withValues(alpha: 0.32),
+            Colors.white.withValues(alpha: 0.18),
           ],
         ),
         border: Border.all(
-          color: Colors.white.withOpacity(0.45),
+          color: Colors.white.withValues(alpha: 0.45),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 30,
             offset: const Offset(0, 14),
           ),
@@ -524,26 +578,33 @@ class _GlassButton extends StatelessWidget {
   const _GlassButton({required this.child, required this.onTap});
 
   final Widget child;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = onTap != null;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Material(
-          color: Colors.white.withOpacity(0.22),
+          color: Colors.white.withValues(alpha: isEnabled ? 0.22 : 0.16),
           child: InkWell(
             onTap: onTap,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.50),
+                  color: Colors.white.withValues(
+                    alpha: isEnabled ? 0.50 : 0.35,
+                  ),
                 ),
               ),
-              child: Center(child: child),
+              child: Opacity(
+                opacity: isEnabled ? 1 : 0.65,
+                child: Center(child: child),
+              ),
             ),
           ),
         ),
@@ -578,10 +639,8 @@ class _InputRow extends StatelessWidget {
       height: 52,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: Colors.white.withOpacity(0.26),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.45),
-        ),
+        color: Colors.white.withValues(alpha: 0.26),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
       ),
       child: Row(
         children: [
@@ -591,13 +650,9 @@ class _InputRow extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withValues(alpha: 0.18),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF9B93B5),
-              size: 22,
-            ),
+            child: Icon(icon, color: AppColors.textSecondary, size: 22),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -607,13 +662,13 @@ class _InputRow extends StatelessWidget {
               textInputAction: textInputAction,
               obscureText: obscureText,
               style: const TextStyle(
-                color: Color(0xFF6A5F88),
+                color: AppColors.headingDark,
                 fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: const TextStyle(
-                  color: Color(0xFFB3AACB),
+                hintStyle: TextStyle(
+                  color: AppColors.textSecondary.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w600,
                 ),
                 border: InputBorder.none,

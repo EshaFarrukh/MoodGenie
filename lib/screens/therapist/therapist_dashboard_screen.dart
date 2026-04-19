@@ -1,29 +1,61 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:moodgenie/src/theme/app_background.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../src/theme/app_theme.dart';
-import '../../src/auth/services/auth_service.dart';
+import 'package:moodgenie/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+
 import '../../controllers/therapist_controller.dart';
 import '../../models/session_model.dart';
 import '../../src/auth/models/user_model.dart';
-import '../../services/therapist_service.dart';
-import 'therapist_user_detail_screen.dart';
+import '../../src/auth/services/auth_service.dart';
+import '../../src/notifications/app_notification_service.dart';
+import '../../src/theme/app_background.dart';
+import '../../src/theme/app_theme.dart';
+import 'models/therapist_workspace_models.dart';
 import 'session_management_screen.dart';
 import 'tabs/therapist_patients_tab.dart';
-import 'tabs/therapist_schedule_tab.dart';
 import 'tabs/therapist_profile_tab.dart';
+import 'tabs/therapist_schedule_tab.dart';
+import 'therapist_chat_screen.dart';
+import 'therapist_user_detail_screen.dart';
+import 'widgets/therapist_ui.dart';
+import '../notifications/widgets/notification_bell_button.dart';
 
 class TherapistDashboardScreen extends StatefulWidget {
-  const TherapistDashboardScreen({super.key});
+  const TherapistDashboardScreen({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
-  State<TherapistDashboardScreen> createState() => _TherapistDashboardScreenState();
+  State<TherapistDashboardScreen> createState() =>
+      _TherapistDashboardScreenState();
 }
 
 class _TherapistDashboardScreenState extends State<TherapistDashboardScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
+  late final Set<int> _visitedTabs;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex.clamp(0, 3);
+    _visitedTabs = <int>{_selectedIndex};
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<AppNotificationService>().maybePromptForPermission(context);
+    });
+  }
+
+  void _selectTab(int index) {
+    final nextIndex = index.clamp(0, 3);
+    setState(() {
+      _selectedIndex = nextIndex;
+      _visitedTabs.add(nextIndex);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,52 +67,104 @@ class _TherapistDashboardScreenState extends State<TherapistDashboardScreen> {
         body: Stack(
           children: [
             const AppBackground(),
-            IndexedStack(
-              index: _selectedIndex,
+            Stack(
               children: [
-                const _TherapistDashboardContent(),
-                const TherapistPatientsTab(),
-                const TherapistScheduleTab(),
-                const TherapistProfileTab(),
+                for (final index in _visitedTabs)
+                  Offstage(
+                    offstage: _selectedIndex != index,
+                    child: TickerMode(
+                      enabled: _selectedIndex == index,
+                      child: _buildTab(index),
+                    ),
+                  ),
               ],
             ),
           ],
         ),
-        bottomNavigationBar: _buildBottomNav(),
+        bottomNavigationBar: _BottomNav(
+          index: _selectedIndex,
+          onTap: _selectTab,
+        ),
       ),
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildTab(int index) {
+    switch (index) {
+      case 0:
+        return _TherapistDashboardContent(onSelectTab: _selectTab);
+      case 1:
+        return const TherapistPatientsTab();
+      case 2:
+        return const TherapistScheduleTab();
+      case 3:
+        return const TherapistProfileTab();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+}
+
+class _BottomNav extends StatelessWidget {
+  const _BottomNav({required this.index, required this.onTap});
+
+  final int index;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 24),
+      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
-          BoxShadow(color: AppColors.primaryDeep.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: AppColors.primaryDeep.withValues(alpha: 0.14),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: BottomNavigationBar(
-            backgroundColor: Colors.white.withOpacity(0.9),
+            backgroundColor: Colors.white.withValues(alpha: 0.97),
             elevation: 0,
             type: BottomNavigationBarType.fixed,
             selectedItemColor: AppColors.primaryDeep,
-            unselectedItemColor: AppColors.textSecondary.withOpacity(0.5),
-            showSelectedLabels: true,
-            showUnselectedLabels: true,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
-            currentIndex: _selectedIndex,
-            onTap: (i) => setState(() => _selectedIndex = i),
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Patients'),
-              BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Schedule'),
-              BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+            unselectedItemColor: AppColors.textSecondary.withValues(
+              alpha: 0.58,
+            ),
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+            currentIndex: index,
+            onTap: onTap,
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.dashboard_customize_rounded),
+                label: l10n.navHome,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.people_alt_rounded),
+                label: l10n.navPatients,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.calendar_month_rounded),
+                label: l10n.navSchedule,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.person_rounded),
+                label: l10n.navProfile,
+              ),
             ],
           ),
         ),
@@ -89,307 +173,166 @@ class _TherapistDashboardScreenState extends State<TherapistDashboardScreen> {
   }
 }
 
-class _TherapistDashboardContent extends StatelessWidget {
-  const _TherapistDashboardContent();
+class _TherapistDashboardContent extends StatefulWidget {
+  const _TherapistDashboardContent({required this.onSelectTab});
+
+  final ValueChanged<int> onSelectTab;
+
+  @override
+  State<_TherapistDashboardContent> createState() =>
+      _TherapistDashboardContentState();
+}
+
+class _TherapistDashboardContentState
+    extends State<_TherapistDashboardContent> {
+  DateTime? _selectedDay;
+
+  bool _sameDay(DateTime left, DateTime right) {
+    return left.year == right.year &&
+        left.month == right.month &&
+        left.day == right.day;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<TherapistController>();
+    final controller = context.read<TherapistController>();
+    final auth = context.watch<AuthService>();
+    final currentUser = auth.currentUser;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          const AppBackground(),
-          SafeArea(
-            child: CustomScrollView(
-              slivers: [
-                _buildAppBar(context),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      _buildWelcomeCard(context),
-                      const SizedBox(height: 24),
-                      _buildWeeklyCalendar(context),
-                      const SizedBox(height: 24),
-                      _buildMetricsRow(context, controller),
-                      const SizedBox(height: 24),
-                      if (controller.error != null) _buildErrorBanner(controller.error!),
-                      _buildPendingRequestsSection(context, controller),
-                      const SizedBox(height: 24),
-                      _buildTodaySessionsSection(context, controller),
-                      const SizedBox(height: 24),
-                      _buildAssignedUsersSection(context, controller),
-                      const SizedBox(height: 100),
-                    ]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (controller.isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorBanner(String error) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.red.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: Colors.red),
-          const SizedBox(width: 8),
-          Expanded(child: Text(error, style: const TextStyle(color: Colors.red))),
-        ],
-      ),
-    );
-  }
-
-  SliverAppBar _buildAppBar(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 80,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      pinned: true,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(30),
-            bottomRight: Radius.circular(30),
-          ),
-          boxShadow: AppShadows.soft(),
-        ),
-        child: FlexibleSpaceBar(
-          title: const Text(
-            'Doctor Dashboard',
-            style: TextStyle(
-              color: AppColors.headingDark,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-            ),
-          ),
-          centerTitle: true,
-        ),
-      ),
-      actions: [
-        IconButton(
-          onPressed: () async {
-            await context.read<AuthService>().signOut();
-          },
-          icon: const Icon(Icons.logout_rounded, color: AppColors.primary),
-          tooltip: 'Sign Out',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWelcomeCard(BuildContext context) {
-    final user = context.watch<AuthService>().currentUser;
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.primaryDeep,
-        image: const DecorationImage(
-          image: NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'),
-          opacity: 0.1,
-          fit: BoxFit.cover,
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(color: AppColors.primaryDeep.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
-                ),
-                child: const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.transparent,
-                  child: Icon(Icons.person, color: Colors.white, size: 30),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Dr. ${user?.name?.split(' ').first ?? 'Therapist'}',
-                      style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: -0.5),
-                    ),
-                    Text(
-                      'Clinical Psychologist',
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                 padding: const EdgeInsets.all(8),
-                 decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-                 child: const Icon(Icons.notifications_none, color: Colors.white),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_month, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: StreamBuilder<List<SessionModel>>(
-                    stream: context.read<TherapistController>().todaySessions,
-                    builder: (context, snapshot) {
-                      final count = snapshot.data?.length ?? 0;
-                      return Text(
-                        count > 0 
-                            ? 'You have $count session${count == 1 ? '' : 's'} scheduled for today.' 
-                            : 'Your schedule is clear for today.',
-                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWeeklyCalendar(BuildContext context) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final upcomingDates = List.generate(7, (i) => today.add(Duration(days: i)));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader('Weekly Overview', Icons.calendar_month),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 85,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: upcomingDates.length,
-            separatorBuilder: (context, _) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final date = upcomingDates[index];
-              final isToday = index == 0;
-              final dayName = DateFormat('EEE').format(date);
-              final dayNum = DateFormat('d').format(date);
-
-              return Container(
-                width: 65,
-                decoration: BoxDecoration(
-                  gradient: isToday
-                      ? const LinearGradient(colors: [AppColors.primary, AppColors.accentCyan], begin: Alignment.topLeft, end: Alignment.bottomRight)
-                      : null,
-                  color: isToday ? null : Colors.white.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(20),
-                  border: isToday ? null : Border.all(color: AppColors.primary.withOpacity(0.1)),
-                  boxShadow: isToday ? [BoxShadow(color: AppColors.accentCyan.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))] : [],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(dayName, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isToday ? Colors.white : AppColors.textSecondary)),
-                    const SizedBox(height: 4),
-                    Text(dayNum, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isToday ? Colors.white : AppColors.headingDark)),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMetricsRow(BuildContext context, TherapistController controller) {
-    return Row(
-      children: [
-        Expanded(child: _buildMetricCard(context, 'Total Patients', Icons.people_alt, AppColors.accentCyan)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildMetricCard(context, 'Telehealth', Icons.video_call, AppColors.primary)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildMetricCard(context, 'Rating', Icons.star, Colors.amber)),
-      ],
-    );
-  }
-
-  Widget _buildMetricCard(BuildContext context, String title, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppShadows.soft(),
-        border: Border.all(color: color.withOpacity(0.1)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.headingDark), textAlign: TextAlign.center),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPendingRequestsSection(BuildContext context, TherapistController controller) {
-    return StreamBuilder<List<SessionModel>>(
-      stream: controller.pendingRequests,
+    return StreamBuilder<TherapistDashboardHeader>(
+      stream: controller.dashboardHeader,
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink(); // Hide if empty
+        final dashboard = snapshot.data;
+        final today = DateTime.now();
+        final defaultDay = DateTime(today.year, today.month, today.day);
+        final availableDays =
+            dashboard?.upcomingWeek.map((day) => day.date).toList() ??
+            <DateTime>[];
+        if (_selectedDay == null) {
+          _selectedDay = defaultDay;
+        } else if (availableDays.isNotEmpty &&
+            !availableDays.any((day) => _sameDay(day, _selectedDay!))) {
+          _selectedDay = availableDays.first;
         }
-        final requests = snapshot.data!;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+
+        return Stack(
           children: [
-            _buildSectionHeader('Pending Approvals', Icons.notifications_active),
-            const SizedBox(height: 12),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: requests.length,
-              itemBuilder: (context, index) {
-                final session = requests[index];
-                return _buildPendingTile(context, session);
+            const AppBackground(),
+            SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+                      child: TherapistResponsiveContainer(
+                        child: StreamBuilder<TherapistProfile?>(
+                          stream: controller.profileStream,
+                          builder: (context, profileSnapshot) {
+                            final profile = profileSnapshot.data;
+                            return _DashboardTopBar(
+                              currentUser: currentUser,
+                              dashboard: dashboard,
+                              profile: profile,
+                              onSignOut: () =>
+                                  context.read<AuthService>().signOut(),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 112),
+                      child: TherapistResponsiveContainer(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Selector<TherapistController, TherapistUiNotice?>(
+                              selector: (_, value) => value.dashboardNotice,
+                              builder: (context, notice, child) {
+                                if (notice == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Column(
+                                  children: [
+                                    _DashboardNoticeBanner(
+                                      notice: notice,
+                                      onDismiss: context
+                                          .read<TherapistController>()
+                                          .dismissDashboardNotice,
+                                    ),
+                                    const SizedBox(height: TherapistSpacing.l),
+                                  ],
+                                );
+                              },
+                            ),
+                            StreamBuilder<TherapistProfile?>(
+                              stream: controller.profileStream,
+                              builder: (context, profileSnapshot) {
+                                final profile = profileSnapshot.data;
+                                return _MetricsGrid(
+                                  patientCount: dashboard?.patientCount ?? 0,
+                                  todayCount:
+                                      dashboard?.todayConfirmedCount ?? 0,
+                                  rating: profile?.rating,
+                                );
+                              },
+                            ),
+                            const SizedBox(height: TherapistSpacing.xl),
+                            _buildFocusedScheduleSection(
+                              context,
+                              dashboard,
+                              snapshot.connectionState,
+                              defaultDay,
+                            ),
+                            if (snapshot.connectionState ==
+                                    ConnectionState.waiting ||
+                                (dashboard?.pendingRequests.isNotEmpty ??
+                                    false)) ...[
+                              const SizedBox(height: TherapistSpacing.xl),
+                              _buildPendingRequestSection(
+                                context,
+                                dashboard,
+                                snapshot.connectionState,
+                              ),
+                            ],
+                            const SizedBox(height: TherapistSpacing.xl),
+                            _DashboardSection(
+                              title: 'Patients',
+                              subtitle:
+                                  'Recent relationships and quick actions.',
+                              action: TextButton(
+                                onPressed: () => widget.onSelectTab(1),
+                                child: const Text('View all'),
+                              ),
+                              child: _PatientPreviewSection(
+                                showSkeleton:
+                                    dashboard == null &&
+                                    snapshot.connectionState ==
+                                        ConnectionState.waiting,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Selector<TherapistController, bool>(
+              selector: (_, value) => value.isLoading,
+              builder: (context, isLoading, child) {
+                if (!isLoading) {
+                  return const SizedBox.shrink();
+                }
+                return Container(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  child: const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                );
               },
             ),
           ],
@@ -398,252 +341,667 @@ class _TherapistDashboardContent extends StatelessWidget {
     );
   }
 
-  Widget _buildPendingTile(BuildContext context, SessionModel session) {
-    final timeStr = DateFormat('MMM d, h:mm a').format(session.scheduledAt);
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shadowColor: Colors.black.withOpacity(0.05),
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.orange.withOpacity(0.2), width: 1.5)),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: FutureBuilder<AppUser?>(
-        future: TherapistService().getUserById(session.userId),
-        builder: (context, snapshot) {
-          final userName = snapshot.data?.name ?? 'Loading Patient...';
-          return InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () {
-              final ctrl = context.read<TherapistController>();
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => ChangeNotifierProvider.value(
-                  value: ctrl,
-                  child: SessionManagementScreen(session: session),
-                ),
-              ));
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 50, height: 50,
-                    decoration: BoxDecoration(color: Colors.orange.shade50, shape: BoxShape.circle),
-                    child: const Icon(Icons.person, color: Colors.orange),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Pending: $userName', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.headingDark)),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
-                            const SizedBox(width: 4),
-                            Text(timeStr, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right, color: Colors.orange),
-                ],
-              ),
-            ),
-          );
-        }
-      ),
-    );
+  List<TherapistScheduleItem> _filterSelectedDayItems(
+    List<TherapistScheduleItem> items,
+    DateTime selectedDay,
+  ) {
+    final filtered = items.where((item) {
+      return _sameDay(item.startsAt, selectedDay) &&
+          (item.status == AppointmentStatus.confirmed ||
+              item.status == AppointmentStatus.requested);
+    }).toList()..sort((left, right) => left.startsAt.compareTo(right.startsAt));
+    return filtered;
   }
 
-  Widget _buildTodaySessionsSection(BuildContext context, TherapistController controller) {
-    return StreamBuilder<List<SessionModel>>(
-      stream: controller.todaySessions,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-        }
-
-        final sessions = snapshot.data ?? [];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader('Today\'s Schedule', Icons.calendar_today),
-            const SizedBox(height: 12),
-            if (sessions.isEmpty)
-              _buildEmptyState('No sessions scheduled for today yet!')
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: sessions.length,
-                itemBuilder: (context, index) {
-                  return _buildSessionTile(context, sessions[index]);
-                },
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildSessionTile(BuildContext context, SessionModel session) {
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shadowColor: AppColors.primary.withOpacity(0.1),
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: AppColors.primary.withOpacity(0.15), width: 1.5)),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: FutureBuilder<AppUser?>(
-        future: TherapistService().getUserById(session.userId),
-        builder: (context, snapshot) {
-          final userName = snapshot.data?.name ?? 'Loading...';
-          return InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () {
-              final ctrl = context.read<TherapistController>();
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => ChangeNotifierProvider.value(
-                  value: ctrl,
-                  child: SessionManagementScreen(session: session),
-                ),
-              ));
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(DateFormat('h:mm').format(session.scheduledAt), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primaryDeep)),
-                        Text(DateFormat('a').format(session.scheduledAt), style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.headingDark)),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(color: AppColors.accentCyan.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                              child: const Text('Confirmed', style: TextStyle(fontSize: 10, color: AppColors.accentCyan, fontWeight: FontWeight.bold)),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text('Video Call', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
-                    child: const Icon(Icons.video_camera_front, color: AppColors.primary, size: 24),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-      ),
-    );
-  }
-
-  Widget _buildAssignedUsersSection(BuildContext context, TherapistController controller) {
-    return StreamBuilder<List<AppUser>>(
-      stream: controller.assignedUsers,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink();
-        }
-        
-        final users = snapshot.data ?? [];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader('Your Patients', Icons.people_alt),
-            const SizedBox(height: 12),
-            if (users.isEmpty)
-              _buildEmptyState('No patients assigned yet.')
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final u = users[index];
-                  return Card(
-                    elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: ListTile(
-                      leading: const CircleAvatar(backgroundColor: AppColors.primaryFaint, child: Icon(Icons.person, color: AppColors.primary)),
-                      title: Text(u.name ?? 'Anonymous User', style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text(u.email, style: const TextStyle(fontSize: 12)),
-                      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                      onTap: () {
-                         Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => TherapistUserDetailScreen(user: u),
-                        ));
-                      },
-                    ),
-                  );
-                },
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.primaryDeep, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.headingDark,
-          ),
+  Future<void> _openSession(BuildContext context, SessionModel session) async {
+    final controller = context.read<TherapistController>();
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider.value(
+          value: controller,
+          child: SessionManagementScreen(session: session),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPendingRequestSection(
+    BuildContext context,
+    TherapistDashboardHeader? dashboard,
+    ConnectionState connectionState,
+  ) {
+    return _DashboardSection(
+      title: 'Pending requests',
+      subtitle: 'Review new booking requests.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (dashboard == null && connectionState == ConnectionState.waiting)
+            const TherapistLoadingSkeleton(lines: 4, showAvatar: true)
+          else if (dashboard?.pendingRequests.isEmpty ?? true)
+            TherapistEmptyState(
+              icon: Icons.task_alt_rounded,
+              title: 'No pending requests',
+              message: 'New booking requests will appear here.',
+              compact: true,
+            )
+          else
+            ...dashboard!.pendingRequests.map(
+              (item) => SessionCard(
+                item: item,
+                compact: true,
+                highlightColor: TherapistColors.pending,
+                secondaryAction: TextButton(
+                  onPressed: () => _openSession(context, item.session),
+                  child: const Text('Review'),
+                ),
+                onTap: () => _openSession(context, item.session),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFocusedScheduleSection(
+    BuildContext context,
+    TherapistDashboardHeader? dashboard,
+    ConnectionState connectionState,
+    DateTime defaultDay,
+  ) {
+    return _DashboardSection(
+      title: 'Today\'s schedule',
+      subtitle: 'Review confirmed care sessions and switch days quickly.',
+      action: TextButton(
+        onPressed: () => widget.onSelectTab(2),
+        child: const Text('Full schedule'),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (dashboard == null && connectionState == ConnectionState.waiting)
+            const TherapistLoadingSkeleton(lines: 2)
+          else
+            _WeeklyStrip(
+              days: dashboard?.upcomingWeek ?? const [],
+              selectedDay: _selectedDay ?? defaultDay,
+              onSelect: (date) => setState(() => _selectedDay = date),
+            ),
+          const SizedBox(height: TherapistSpacing.m),
+          if (dashboard == null && connectionState == ConnectionState.waiting)
+            const TherapistLoadingSkeleton(lines: 4, showAvatar: true)
+          else
+            _FocusedScheduleSection(
+              selectedDay: _selectedDay ?? defaultDay,
+              items: _filterSelectedDayItems(
+                dashboard?.scheduleItems ?? const [],
+                _selectedDay ?? defaultDay,
+              ),
+              onOpenSession: (item) => _openSession(context, item.session),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PatientPreviewSection extends StatelessWidget {
+  const _PatientPreviewSection({required this.showSkeleton});
+
+  final bool showSkeleton;
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<TherapistController, List<TherapistPatientSummary>>(
+      selector: (_, value) => value.patientSummaries,
+      builder: (context, patients, child) {
+        final isLoading = context.select<TherapistController, bool>(
+          (value) => value.isPatientsLoading,
+        );
+        if (showSkeleton && patients.isEmpty && isLoading) {
+          return const TherapistLoadingSkeleton(lines: 4, showAvatar: true);
+        }
+        if (patients.isEmpty) {
+          return TherapistEmptyState(
+            icon: Icons.people_outline_rounded,
+            title: 'No active patients yet',
+            message: 'Confirmed care relationships will appear here.',
+            compact: true,
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: patients.take(4).map((patient) {
+            return PatientListItem(
+              summary: patient,
+              compact: true,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TherapistUserDetailScreen(user: patient.user),
+                ),
+              ),
+              onMessage: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TherapistChatScreen(
+                    therapistId: patient.user.uid,
+                    therapistName: patient.user.name ?? 'Patient',
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _DashboardTopBar extends StatelessWidget {
+  const _DashboardTopBar({
+    required this.currentUser,
+    required this.dashboard,
+    required this.profile,
+    required this.onSignOut,
+  });
+
+  final AppUser? currentUser;
+  final TherapistDashboardHeader? dashboard;
+  final TherapistProfile? profile;
+  final Future<void> Function() onSignOut;
+
+  @override
+  Widget build(BuildContext context) {
+    final todayCount = dashboard?.todayConfirmedCount ?? 0;
+    final scheduleMessage = todayCount == 0
+        ? 'Your schedule is clear today'
+        : '$todayCount confirmed session${todayCount == 1 ? '' : 's'} today';
+    final isApproved = profile?.isApproved == true;
+    final displayName = _formatClinicianName(currentUser?.name);
+    final roleLabel = profile?.professionalTitle?.trim().isNotEmpty == true
+        ? profile!.professionalTitle!.trim()
+        : profile?.specialty?.trim().isNotEmpty == true
+        ? profile!.specialty!.trim()
+        : 'Therapist';
+
+    return GradientCard(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          TherapistColors.headerDeep.withValues(alpha: 0.96),
+          TherapistColors.headerBottom.withValues(alpha: 0.94),
+          AppColors.primarySoft.withValues(alpha: 0.92),
+        ],
+      ),
+      borderColor: Colors.white.withValues(alpha: 0.28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 15,
+                      color: Colors.white.withValues(alpha: 0.92),
+                    ),
+                    const SizedBox(width: TherapistSpacing.xs),
+                    Text(
+                      DateFormat('EEEE, d MMMM').format(DateTime.now()),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.92),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: TherapistSpacing.m),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const NotificationBellButton(
+                    iconColor: Colors.white,
+                    backgroundColor: Color(0x26FFFFFF),
+                  ),
+                  const SizedBox(width: TherapistSpacing.s),
+                  _HeaderActionButton(
+                    icon: Icons.logout_rounded,
+                    tooltip: AppLocalizations.of(context)!.signOut,
+                    onTap: onSignOut,
+                    iconColor: Colors.white,
+                    backgroundColor: Colors.white24,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: TherapistSpacing.xl),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 420;
+              return Container(
+                padding: const EdgeInsets.all(TherapistSpacing.m),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.96),
+                  borderRadius: BorderRadius.circular(TherapistRadii.card),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.74),
+                  ),
+                  boxShadow: AppShadows.card(color: AppColors.primaryDeep),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: TherapistSpacing.s,
+                      runSpacing: TherapistSpacing.s,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: TherapistSpacing.s,
+                            vertical: TherapistSpacing.xs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryFaint,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text(
+                            'Clinician Dashboard',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2,
+                              color: AppColors.primaryDeep,
+                            ),
+                          ),
+                        ),
+                        TherapistStatusBadge(
+                          label: isApproved ? 'Approved' : 'In review',
+                          foreground: isApproved
+                              ? AppColors.success
+                              : TherapistColors.pending,
+                          background: isApproved
+                              ? TherapistColors.confirmedSurface
+                              : TherapistColors.pendingSurface,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TherapistSpacing.m),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: isCompact ? 48 : 56,
+                          height: isCompact ? 48 : 56,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryFaint,
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Icon(
+                            Icons.medical_services_rounded,
+                            color: AppColors.primaryDeep,
+                            size: isCompact ? 22 : 26,
+                          ),
+                        ),
+                        const SizedBox(width: TherapistSpacing.m),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                displayName,
+                                style: TextStyle(
+                                  fontSize: isCompact ? 25 : 28,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.7,
+                                  color: AppColors.headingDark,
+                                  height: 1.05,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: TherapistSpacing.xxs),
+                              Text(
+                                roleLabel,
+                                style: TextStyle(
+                                  fontSize: isCompact ? 15 : 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: TherapistSpacing.m),
+          TherapistInfoBanner(
+            icon: Icons.event_available_rounded,
+            title: scheduleMessage,
+            backgroundColor: Colors.white.withValues(alpha: 0.96),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatClinicianName(String? rawName) {
+    final name = rawName?.trim();
+    if (name == null || name.isEmpty) {
+      return 'Therapist';
+    }
+
+    final withoutPrefix = name.replaceFirst(
+      RegExp(r'^dr\.?\s*', caseSensitive: false),
+      '',
+    );
+    final words = withoutPrefix
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .map(
+          (part) =>
+              '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}',
+        )
+        .join(' ');
+
+    if (words.isEmpty) {
+      return 'Therapist';
+    }
+
+    return 'Dr. $words';
+  }
+}
+
+class _DashboardSection extends StatelessWidget {
+  const _DashboardSection({
+    required this.title,
+    required this.subtitle,
+    required this.child,
+    this.action,
+  });
+
+  final String title;
+  final String subtitle;
+  final Widget child;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: title, subtitle: subtitle, action: action),
+        const SizedBox(height: TherapistSpacing.m),
+        child,
       ],
     );
   }
+}
 
-  Widget _buildEmptyState(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.4),
+class _HeaderActionButton extends StatelessWidget {
+  const _HeaderActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.iconColor = AppColors.primaryDeep,
+    this.backgroundColor = AppColors.primaryFaint,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final Future<void> Function() onTap;
+  final Color iconColor;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white),
-      ),
-      child: Center(
-        child: Text(
-          message,
-          style: const TextStyle(color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            onTap();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Icon(icon, color: iconColor),
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _DashboardNoticeBanner extends StatelessWidget {
+  const _DashboardNoticeBanner({required this.notice, required this.onDismiss});
+
+  final TherapistUiNotice notice;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final background = notice.isError
+        ? TherapistColors.destructiveSurface
+        : AppColors.primaryFaint;
+    final foreground = notice.isError ? AppColors.error : AppColors.primaryDeep;
+    return TherapistSurfaceCard(
+      color: background,
+      borderColor: foreground.withValues(alpha: 0.18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: foreground.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(notice.icon, color: foreground),
+          ),
+          const SizedBox(width: TherapistSpacing.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (notice.title != null)
+                  Text(
+                    notice.title!,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: foreground,
+                    ),
+                  ),
+                if (notice.title != null)
+                  const SizedBox(height: TherapistSpacing.xxs),
+                Text(
+                  notice.message,
+                  style: const TextStyle(
+                    height: 1.45,
+                    color: AppColors.bodyMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onDismiss,
+            icon: const Icon(Icons.close_rounded),
+            color: AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricsGrid extends StatelessWidget {
+  const _MetricsGrid({
+    required this.patientCount,
+    required this.todayCount,
+    required this.rating,
+  });
+
+  final int patientCount;
+  final int todayCount;
+  final double? rating;
+
+  @override
+  Widget build(BuildContext context) {
+    final cards = [
+      DashboardMetricCard(
+        value: patientCount.toString(),
+        label: 'Patients',
+        icon: Icons.people_alt_rounded,
+        accent: AppColors.accentCyan,
+      ),
+      DashboardMetricCard(
+        value: todayCount.toString(),
+        label: 'Today',
+        icon: Icons.calendar_today_rounded,
+        accent: AppColors.primary,
+      ),
+      DashboardMetricCard(
+        value: rating?.toStringAsFixed(1) ?? 'New',
+        label: 'Rating',
+        icon: Icons.star_rounded,
+        accent: const Color(0xFFF4B400),
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 340) {
+          return Column(
+            children: cards
+                .map(
+                  (card) => Padding(
+                    padding: const EdgeInsets.only(bottom: TherapistSpacing.s),
+                    child: card,
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var index = 0; index < cards.length; index++) ...[
+              Expanded(child: cards[index]),
+              if (index != cards.length - 1)
+                const SizedBox(width: TherapistSpacing.s),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _WeeklyStrip extends StatelessWidget {
+  const _WeeklyStrip({
+    required this.days,
+    required this.selectedDay,
+    required this.onSelect,
+  });
+
+  final List<TherapistDayOverview> days;
+  final DateTime selectedDay;
+  final ValueChanged<DateTime> onSelect;
+
+  bool _sameDay(DateTime left, DateTime right) {
+    return left.year == right.year &&
+        left.month == right.month &&
+        left.day == right.day;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (days.isEmpty) {
+      return TherapistEmptyState(
+        icon: Icons.calendar_month_outlined,
+        title: 'No schedule data yet',
+        message: 'Your week overview will appear once sessions are booked.',
+      );
+    }
+
+    return SizedBox(
+      height: 112,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: days.length,
+        separatorBuilder: (context, _) =>
+            const SizedBox(width: TherapistSpacing.s),
+        itemBuilder: (context, index) {
+          final day = days[index];
+          final isSelected = _sameDay(day.date, selectedDay);
+          final isToday = _sameDay(day.date, DateTime.now());
+          return DaySelector(
+            day: day,
+            isSelected: isSelected,
+            isToday: isToday,
+            onTap: () => onSelect(day.date),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FocusedScheduleSection extends StatelessWidget {
+  const _FocusedScheduleSection({
+    required this.selectedDay,
+    required this.items,
+    required this.onOpenSession,
+  });
+
+  final DateTime selectedDay;
+  final List<TherapistScheduleItem> items;
+  final ValueChanged<TherapistScheduleItem> onOpenSession;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return TherapistEmptyState(
+        icon: Icons.event_busy_rounded,
+        title:
+            'No confirmed sessions on ${DateFormat('MMM d').format(selectedDay)}',
+        message: 'Review pending requests or open your full schedule.',
+        compact: true,
+      );
+    }
+
+    return Column(
+      children: items
+          .map(
+            (item) => SessionCard(
+              item: item,
+              compact: true,
+              onTap: () => onOpenSession(item),
+            ),
+          )
+          .toList(),
     );
   }
 }

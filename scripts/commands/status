@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -L "$SOURCE" ]]; do
+  SOURCE_DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  if [[ "$SOURCE" != /* ]]; then
+    SOURCE="$SOURCE_DIR/$SOURCE"
+  fi
+done
+
+SCRIPT_DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+SCRIPTS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+TARGET_APP="${1:-}"
+if [[ "$TARGET_APP" != "moodgenie" ]]; then
+  echo "Usage: status moodgenie" >&2
+  exit 1
+fi
+
+shift
+if [[ $# -gt 0 ]]; then
+  echo "Usage: status moodgenie" >&2
+  exit 1
+fi
+
+exec "$SCRIPTS_DIR/local_stack.sh" status

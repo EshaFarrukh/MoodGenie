@@ -6,10 +6,7 @@ class CircularScorePainter extends CustomPainter {
   final double score;
   final double maxScore;
 
-  CircularScorePainter({
-    required this.score,
-    required this.maxScore,
-  });
+  CircularScorePainter({required this.score, required this.maxScore});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -18,7 +15,7 @@ class CircularScorePainter extends CustomPainter {
 
     // Background circle (light purple)
     final bgPaint = Paint()
-      ..color = const Color(0xFFE5DEFF).withOpacity(0.3)
+      ..color = const Color(0xFFE5DEFF).withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12
       ..strokeCap = StrokeCap.round;
@@ -32,8 +29,8 @@ class CircularScorePainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          AppColors.primary.withOpacity(0.6),
-          AppColors.primaryDeep.withOpacity(0.6),
+          AppColors.primary.withValues(alpha: 0.6),
+          AppColors.primaryDeep.withValues(alpha: 0.6),
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.stroke
@@ -51,10 +48,7 @@ class CircularScorePainter extends CustomPainter {
     // Main progress arc
     final progressPaint = Paint()
       ..shader = LinearGradient(
-        colors: [
-          AppColors.primary,
-          AppColors.primaryDeep,
-        ],
+        colors: [AppColors.primary, AppColors.primaryDeep],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromCircle(center: center, radius: radius))

@@ -56,7 +56,9 @@ class WatchApprovedTherapistsUseCase {
     if (params != null) {
       final validationErrors = params.validate();
       if (validationErrors.isNotEmpty) {
-        throw ArgumentError('Invalid parameters: ${validationErrors.join(', ')}');
+        throw ArgumentError(
+          'Invalid parameters: ${validationErrors.join(', ')}',
+        );
       }
     }
 

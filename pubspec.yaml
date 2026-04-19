@@ -1,5 +1,5 @@
 name: moodgenie
-description: "A new Flutter project."
+description: "MoodGenie is a mental-wellness app with therapist operations and an audited admin dashboard."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   fl_chart: ^1.1.1
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10+1
@@ -40,12 +42,22 @@ dependencies:
   firebase_core: ^4.2.1
   firebase_auth: ^6.1.2
   cloud_firestore: ^6.1.0
-  firebase_messaging: ^16.0.4
+  firebase_messaging: ^16.0.2
   provider: ^6.1.5+1
-  shared_preferences: ^2.3.5
   http: ^1.6.0
   intl: ^0.20.2
   flutter_webrtc: ^1.2.1
+  flutter_local_notifications: ^17.2.4
+  pdf: ^3.11.3
+  printing: ^5.14.2
+  path_provider: ^2.1.5
+  share_plus: ^12.0.1
+  timezone: ^0.9.4
+  firebase_storage: ^13.1.0
+  image_picker: ^1.2.1
+  record: ^6.2.0
+  audioplayers: ^6.6.0
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +75,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

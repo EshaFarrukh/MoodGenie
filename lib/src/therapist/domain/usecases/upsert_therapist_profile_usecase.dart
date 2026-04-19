@@ -31,7 +31,7 @@ class UpsertTherapistProfileUseCase {
       for (int j = i + 1; j < slots.length; j++) {
         if (slots[i].overlapsWith(slots[j])) {
           throw ValidationException([
-            'Availability slots cannot overlap: ${slots[i]} and ${slots[j]}'
+            'Availability slots cannot overlap: ${slots[i]} and ${slots[j]}',
           ]);
         }
       }
@@ -47,21 +47,22 @@ class UpsertTherapistProfileUseCase {
     if (criticalSpecializations.contains(entity.specialization) &&
         entity.experienceYears < 2) {
       throw ValidationException([
-        'Minimum 2 years experience required for ${entity.specialization}'
+        'Minimum 2 years experience required for ${entity.specialization}',
       ]);
     }
 
     // Validate reasonable working hours (max 8 slots per day)
     final dailySlots = <String, int>{};
     for (final slot in entity.availabilitySlots) {
-      final dateKey = '${slot.startAt.year}-${slot.startAt.month}-${slot.startAt.day}';
+      final dateKey =
+          '${slot.startAt.year}-${slot.startAt.month}-${slot.startAt.day}';
       dailySlots[dateKey] = (dailySlots[dateKey] ?? 0) + 1;
     }
 
     for (final entry in dailySlots.entries) {
       if (entry.value > 8) {
         throw ValidationException([
-          'Cannot have more than 8 availability slots per day (${entry.key})'
+          'Cannot have more than 8 availability slots per day (${entry.key})',
         ]);
       }
     }

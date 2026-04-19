@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1053666873304',
     projectId: 'moodgenie-4fc46',
     storageBucket: 'moodgenie-4fc46.firebasestorage.app',
-    iosBundleId: 'com.example.moodgenie',
+    iosBundleId: 'com.moodgenie.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1053666873304',
     projectId: 'moodgenie-4fc46',
     storageBucket: 'moodgenie-4fc46.firebasestorage.app',
-    iosBundleId: 'com.example.moodgenie',
+    iosBundleId: 'com.moodgenie.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'moodgenie-4fc46.firebasestorage.app',
     measurementId: 'G-DEDWFHYCS7',
   );
-
 }

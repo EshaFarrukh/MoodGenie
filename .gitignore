@@ -52,7 +52,20 @@ FYP Registration Form - SE.pdf
 # Environment configuration
 .env
 backend/.env
+apps/admin/.env.local
+android/key.properties
+ios/Flutter/Signing.xcconfig
+macos/Flutter/Signing.xcconfig
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
 *.py
 build_log*.txt
+node_modules/
+**/node_modules/
+**/.next/
+*.tsbuildinfo
 backend/node_modules/
 backend/server.pid
+.local/

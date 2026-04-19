@@ -1,0 +1,262 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function approvedTherapist(uid) {
+      return exists(/databases/$(database)/documents/therapists/$(uid)) &&
+          get(/databases/$(database)/documents/therapists/$(uid)).data.isApproved == true &&
+          get(/databases/$(database)/documents/therapists/$(uid)).data.credentialVerificationStatus == 'verified';
+    }
+
+    function publicTherapistDataValid(therapistId, data) {
+      return data.keys().hasOnly([
+            'therapistId',
+            'userId',
+            'displayName',
+            'professionalTitle',
+            'specialty',
+            'yearsExperience',
+            'pricePerSession',
+            'bio',
+            'rating',
+            'nextAvailableAt',
+            'acceptingNewPatients',
+            'isApproved',
+            'credentialVerificationStatus',
+            'verifiedAt',
+            'updatedAt',
+            'createdAt',
+          ]) &&
+          data.therapistId == therapistId &&
+          data.userId == therapistId &&
+          data.isApproved == true &&
+          data.credentialVerificationStatus == 'verified';
+    }
+
+    function therapistClientCreateAllowed(therapistId) {
+      return isOwner(therapistId) &&
+          request.resource.data.userId == therapistId &&
+          request.resource.data.isApproved == false &&
+          (
+            !request.resource.data.keys().hasAny(['reviewStatus']) ||
+            ['pending_review'].hasAny([request.resource.data.reviewStatus])
+          ) &&
+          (
+            !request.resource.data.keys().hasAny(['accountStatus']) ||
+            ['pending_review'].hasAny([request.resource.data.accountStatus])
+          ) &&
+          (
+            !request.resource.data.keys().hasAny(['credentialVerificationStatus']) ||
+            ['pending_review'].hasAny([
+              request.resource.data.credentialVerificationStatus,
+            ])
+          ) &&
+          !request.resource.data.keys().hasAny([
+            'reviewedAt',
+            'reviewedBy',
+            'reviewNotes',
+            'credentialVerifiedAt',
+            'credentialVerifiedBy',
+            'verificationMethod',
+            'verificationReference',
+          ]);
+    }
+
+    function therapistClientUpdateAllowed(therapistId) {
+      return isOwner(therapistId) &&
+          request.resource.data.userId == therapistId &&
+          request.resource.data.isApproved == resource.data.isApproved &&
+          request.resource.data.reviewStatus == resource.data.reviewStatus &&
+          request.resource.data.accountStatus == resource.data.accountStatus &&
+          request.resource.data.reviewedAt == resource.data.reviewedAt &&
+          request.resource.data.reviewedBy == resource.data.reviewedBy &&
+          request.resource.data.reviewNotes == resource.data.reviewNotes &&
+          request.resource.data.credentialVerificationStatus == resource.data.credentialVerificationStatus &&
+          request.resource.data.credentialVerifiedAt == resource.data.credentialVerifiedAt &&
+          request.resource.data.credentialVerifiedBy == resource.data.credentialVerifiedBy &&
+          request.resource.data.verificationMethod == resource.data.verificationMethod &&
+          request.resource.data.verificationReference == resource.data.verificationReference;
+    }
+
+    function therapistOpenForBookings(uid) {
+      return approvedTherapist(uid) &&
+          (
+            !get(/databases/$(database)/documents/therapists/$(uid)).data.keys().hasAny(['acceptingNewPatients']) ||
+            get(/databases/$(database)/documents/therapists/$(uid)).data.acceptingNewPatients == true
+          );
+    }
+
+    function userAllowsTherapist(userId, therapistId) {
+      return signedIn() &&
+          approvedTherapist(therapistId) &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          get(/databases/$(database)/documents/users/$(userId)).data.keys().hasAny(['consentedTherapists']) &&
+          get(/databases/$(database)/documents/users/$(userId)).data.consentedTherapists.hasAny([therapistId]);
+    }
+
+    function isAppointmentParticipant(userId, therapistId) {
+      return signedIn() &&
+          (request.auth.uid == userId || request.auth.uid == therapistId);
+    }
+
+    function roomHasParticipant(data) {
+      return signedIn() &&
+          data.keys().hasAny(['participants']) &&
+          data.participants.hasAny([request.auth.uid]);
+    }
+
+    match /users/{userId} {
+      allow create: if isOwner(userId);
+      allow read: if isOwner(userId) ||
+          userAllowsTherapist(userId, request.auth.uid);
+      allow update: if isOwner(userId) &&
+          request.resource.data.role == resource.data.role;
+      allow delete: if isOwner(userId);
+
+      match /preferences/{preferenceId} {
+        allow read, create, update, delete: if isOwner(userId);
+      }
+
+      match /devices/{deviceId} {
+        allow read, create, update, delete: if isOwner(userId);
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if isOwner(userId);
+        allow update: if isOwner(userId) &&
+            request.resource.data.type == resource.data.type &&
+            request.resource.data.title == resource.data.title &&
+            request.resource.data.body == resource.data.body &&
+            request.resource.data.previewTitle == resource.data.previewTitle &&
+            request.resource.data.previewBody == resource.data.previewBody &&
+            request.resource.data.channel == resource.data.channel &&
+            request.resource.data.deepLink == resource.data.deepLink &&
+            request.resource.data.metadata == resource.data.metadata &&
+            request.resource.data.createdAt == resource.data.createdAt &&
+            request.resource.data.sentAt == resource.data.sentAt;
+        allow create, delete: if false;
+      }
+
+      match /mood_forecasts/{dateKey} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+
+    match /therapists/{therapistId} {
+      allow read: if isOwner(therapistId);
+      allow create: if therapistClientCreateAllowed(therapistId);
+      allow update: if therapistClientUpdateAllowed(therapistId);
+      allow delete: if isOwner(therapistId) &&
+          resource.data.isApproved != true;
+    }
+
+    match /public_therapists/{therapistId} {
+      allow read: if signedIn() &&
+          approvedTherapist(therapistId) &&
+          resource.data.isApproved == true &&
+          resource.data.credentialVerificationStatus == 'verified';
+      allow create, update: if isOwner(therapistId) &&
+          approvedTherapist(therapistId) &&
+          publicTherapistDataValid(therapistId, request.resource.data);
+      allow delete: if false;
+    }
+
+    match /moods/{moodId} {
+      allow create: if signedIn() &&
+          request.resource.data.userId == request.auth.uid;
+      allow read: if isOwner(resource.data.userId) ||
+          userAllowsTherapist(resource.data.userId, request.auth.uid);
+      allow update, delete: if isOwner(resource.data.userId);
+    }
+
+    match /appointments/{appointmentId} {
+      allow create: if false;
+      allow read: if isAppointmentParticipant(
+          resource.data.userId,
+          resource.data.therapistId,
+      );
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /chats/{chatId} {
+      allow create: if signedIn() &&
+          request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isOwner(resource.data.userId);
+    }
+
+    match /therapist_chats/{roomId} {
+      allow create: if false;
+      allow read: if roomHasParticipant(resource.data);
+      allow update: if roomHasParticipant(resource.data) &&
+          request.resource.data.participants == resource.data.participants &&
+          request.resource.data.userId == resource.data.userId &&
+          request.resource.data.therapistId == resource.data.therapistId &&
+          request.resource.data.relationshipType == resource.data.relationshipType &&
+          request.resource.data.appointmentId == resource.data.appointmentId &&
+          request.resource.data.canCall == resource.data.canCall;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if roomHasParticipant(
+          get(/databases/$(database)/documents/therapist_chats/$(roomId)).data
+        );
+        allow create: if signedIn() &&
+            request.resource.data.senderId == request.auth.uid &&
+            roomHasParticipant(
+              get(/databases/$(database)/documents/therapist_chats/$(roomId)).data
+            );
+        allow update, delete: if false;
+      }
+    }
+
+    match /calls/{roomId} {
+      allow create: if false;
+      allow read: if roomHasParticipant(resource.data);
+      allow update: if roomHasParticipant(resource.data) &&
+          request.resource.data.participants == resource.data.participants &&
+          request.resource.data.userId == resource.data.userId &&
+          request.resource.data.therapistId == resource.data.therapistId &&
+          request.resource.data.appointmentId == resource.data.appointmentId;
+      allow delete: if roomHasParticipant(resource.data);
+
+      match /{subCollection}/{docId} {
+        allow read, write: if roomHasParticipant(
+          get(/databases/$(database)/documents/calls/$(roomId)).data
+        );
+      }
+    }
+
+    match /app_config/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /feedback/{feedbackId} {
+      allow create: if signedIn() &&
+          request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /notification_jobs/{jobId} {
+      allow read, write: if false;
+    }
+
+    match /notification_delivery_logs/{logId} {
+      allow read, write: if false;
+    }
+
+    match /notification_failures/{failureId} {
+      allow read, write: if false;
+    }
+  }
+}

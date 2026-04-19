@@ -13,7 +13,10 @@ abstract class TherapistRepository {
 
   /// Updates availability slots for a therapist
   /// Validates slots for conflicts and business rules
-  Future<void> updateAvailability(String uid, List<AvailabilitySlotEntity> slots);
+  Future<void> updateAvailability(
+    String uid,
+    List<AvailabilitySlotEntity> slots,
+  );
 
   /// Watches approved therapists with optional query filtering
   /// Supports filtering by specialization, rating, availability, etc.

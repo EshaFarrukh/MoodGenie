@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -L "$SOURCE" ]]; do
+  SOURCE_DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  if [[ "$SOURCE" != /* ]]; then
+    SOURCE="$SOURCE_DIR/$SOURCE"
+  fi
+done
+
+SCRIPT_DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+SCRIPTS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+TARGET_APP="${1:-}"
+if [[ "$TARGET_APP" != "moodgenie" ]]; then
+  echo "Usage: run moodgenie [--target ios|macos|both] [--open-ui yes|no] [--open-xcode yes|no]" >&2
+  exit 1
+fi
+
+shift
+if [[ "${1:-}" == "--auth" ]]; then
+  echo "run moodgenie always uses real Firebase auth now. Remove --auth and try again." >&2
+  exit 1
+fi
+exec "$SCRIPTS_DIR/local_stack.sh" start "$@"

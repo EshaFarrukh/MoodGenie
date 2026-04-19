@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../entities/session_entity.dart';
 import '../repositories/session_repository.dart';
 
@@ -23,7 +25,7 @@ class CancelSessionUseCase {
     // Validate session can be cancelled
     if (!session.canBeCancelled()) {
       throw StateError(
-        'Session cannot be cancelled. Current status: ${session.status.displayName}'
+        'Session cannot be cancelled. Current status: ${session.status.displayName}',
       );
     }
 
@@ -34,15 +36,17 @@ class CancelSessionUseCase {
     // Check minimum notice period (24 hours for non-emergency)
     if (timeDifference.inHours < 24 && reason?.toLowerCase() != 'emergency') {
       // Still allow, but may incur fees or affect rating
-      print('Warning: Cancellation with less than 24 hours notice');
+      if (kDebugMode) {
+        debugPrint('Late session cancellation triggered');
+      }
     }
 
     // Validate cancellation after session started
     if (session.scheduledAt.isBefore(now)) {
-      if (session.status == SessionStatus.accepted) {
+      if (session.status == SessionStatus.confirmed) {
         // This might be a no-show scenario
         throw StateError(
-          'Session has already started. Use complete session or mark as no-show instead.'
+          'Session has already started. Use complete session or mark as no-show instead.',
         );
       }
     }
@@ -59,17 +63,25 @@ class CancelSessionUseCase {
 
       // Check for valid cancellation reasons
       final validReasons = [
-        'emergency', 'illness', 'technical', 'personal',
-        'scheduling', 'travel', 'family', 'work'
+        'emergency',
+        'illness',
+        'technical',
+        'personal',
+        'scheduling',
+        'travel',
+        'family',
+        'work',
       ];
 
       final lowerReason = reason.toLowerCase();
-      final hasValidReason = validReasons.any((valid) =>
-        lowerReason.contains(valid)
+      final hasValidReason = validReasons.any(
+        (valid) => lowerReason.contains(valid),
       );
 
       if (!hasValidReason && reason.length < 10) {
-        throw ArgumentError('Please provide a more detailed cancellation reason');
+        throw ArgumentError(
+          'Please provide a more detailed cancellation reason',
+        );
       }
     }
 
@@ -88,7 +100,10 @@ class CancelSessionUseCase {
   }
 
   /// Convenience method for cancelling with predefined reasons
-  Future<void> cancelWithReason(String sessionId, CancellationReason reason) async {
+  Future<void> cancelWithReason(
+    String sessionId,
+    CancellationReason reason,
+  ) async {
     await call(sessionId, reason: reason.message);
   }
 
