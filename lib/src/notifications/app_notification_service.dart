@@ -94,7 +94,11 @@ class AppNotificationService extends ChangeNotifier {
       sound: true,
     );
     _bindForegroundMessageHandlers();
-    await _syncRegistrationForCurrentUser();
+    try {
+      await _syncRegistrationForCurrentUser();
+    } catch (e) {
+      debugPrint('Notification registration skipped: $e');
+    }
 
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
@@ -420,7 +424,16 @@ class AppNotificationService extends ChangeNotifier {
       return;
     }
 
-    final token = await _messaging.getToken();
+    String? token;
+    try {
+      token = await _messaging.getToken();
+    } catch (e) {
+      debugPrint('FCM getToken failed (expected on iOS Simulator): $e');
+      _lastRegistrationError =
+          'Push token unavailable (APNS not supported on this device).';
+      notifyListeners();
+      return;
+    }
     if (token == null || token.trim().isEmpty) {
       _lastRegistrationError =
           'Push registration did not return a device token. Please try again.';

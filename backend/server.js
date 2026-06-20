@@ -29,9 +29,9 @@ const OLLAMA_CHAT_TIMEOUT_MS = Number(
   process.env.OLLAMA_CHAT_TIMEOUT_MS || 60 * 1000,
 );
 const OLLAMA_NUM_PREDICT = Number(process.env.OLLAMA_NUM_PREDICT || 256);
-const OLLAMA_TEMPERATURE = Number(process.env.OLLAMA_TEMPERATURE || 0.25);
+const OLLAMA_TEMPERATURE = Number(process.env.OLLAMA_TEMPERATURE || 0.7);
 const OLLAMA_REPEAT_PENALTY = Number(
-  process.env.OLLAMA_REPEAT_PENALTY || 1.1,
+  process.env.OLLAMA_REPEAT_PENALTY || 1.2,
 );
 const TURN_URLS = (process.env.TURN_URLS || '')
   .split(',')
@@ -106,61 +106,6 @@ const CHAT_FEW_SHOT_EXAMPLES = [
     user: 'My chest feels tight because I keep overthinking everything.',
     assistant:
       "I'm sorry you're dealing with that. Let's slow it down for one moment. Unclench your jaw, relax your shoulders, and take one slow breath in and one slow breath out. You do not need to solve every thought right now. Do you know what triggered the overthinking today?",
-  },
-  {
-    user: 'My sleep schedule is so bad and it makes me feel worse.',
-    assistant:
-      'Poor sleep can make everything feel heavier. Do not try to fix the whole routine in one night. Start with one change only, like putting your phone away 20 minutes earlier or keeping the lights dim before bed. What part is hardest for you, falling asleep or waking up tired?',
-  },
-  {
-    user: 'I have exams and I feel like I will fail everything.',
-    assistant:
-      'That pressure sounds intense, and it makes sense that you feel scared. Right now, do not think about every exam together. Choose one subject and one 20 minute study block. That is enough for this moment. Want to tell me which exam is stressing you most?',
-  },
-  {
-    user: "I don't even know what I'm feeling.",
-    assistant:
-      "That is okay. You do not need perfect words. Try naming it in a simple way, heavy, numb, anxious, low, irritated, or mixed. Logging your mood can help you notice patterns without pressure. Want me to help you put today's feeling into words?",
-  },
-  {
-    user: "I want to journal but I don't know what to write.",
-    assistant:
-      'Keep it very simple. Start with one line, right now I feel, then write whatever comes naturally. No need to sound deep or perfect. Even two honest sentences are enough. Do you want a few gentle journal prompts?',
-  },
-  {
-    user: 'I think I need deeper help because these feelings keep coming back.',
-    assistant:
-      "I'm really glad you said that. Reaching for more support is a strong step, not a weak one. If these feelings keep repeating or getting heavier, connecting with a licensed therapist could really help. Would you like help preparing what to say in your first session?",
-  },
-  {
-    user: 'I feel like I’m panicking and I cannot calm down.',
-    assistant:
-      "I'm here with you. Let's keep this very small. Put both feet on the floor and name five things you can see around you. Then take one slow breath. We are focusing only on this moment, not the whole day. Are you somewhere safe right now?",
-  },
-  {
-    user: 'Everything is my fault.',
-    assistant:
-      'That thought sounds painful. When you’re overwhelmed, your mind can become very harsh with you. For now, do not argue with every thought. Just pause and ask, what is one thing I know for sure right now? What happened today that made you feel this way?',
-  },
-  {
-    user: 'I have no motivation for anything.',
-    assistant:
-      'That can feel really draining. When motivation is low, try not to wait for energy before starting. Make the goal extremely small, like standing up, washing your face, or doing one task for five minutes. Tiny movement still matters. What feels easiest to start with today?',
-  },
-  {
-    user: 'I feel nothing these days.',
-    assistant:
-      'Feeling numb can be unsettling too. It does not mean your struggle is not real. For today, focus on one grounding thing that brings even a little sensation, fresh air, cold water on your hands, or a short walk. Has this numb feeling been going on for a long time?',
-  },
-  {
-    user: 'Do I have depression?',
-    assistant:
-      "I can’t diagnose mental health conditions, but I can help you notice what you’ve been experiencing and encourage you to speak with a licensed professional for a proper assessment. If you want, you can tell me what symptoms or feelings you’ve been having, and I can help you organize them clearly.",
-  },
-  {
-    user: 'Tell me what medicine I should take for anxiety.',
-    assistant:
-      "I can’t recommend medicine or dosage. That decision should come from a qualified medical professional who understands your health history. I can help with calming strategies for this moment, or help you prepare questions to ask a doctor or therapist. What kind of support do you need right now?",
   },
 ];
 
@@ -1054,6 +999,9 @@ function shouldUseGuidedWellnessReply(text = '', screenContext = 'chat') {
     return true;
   }
 
+  return false;
+
+  // The keywords check is disabled for chat screen to prevent static guided templates from overriding live AI chat.
   return containsAny(text, [
     'i feel',
     'overwhelm',
@@ -1388,7 +1336,7 @@ function isLikelyTruncatedReply(text = '') {
     return true;
   }
 
-  return trimmed.length >= 40;
+  return trimmed.length >= 150;
 }
 
 function buildCrisisOverrideReply(replyStyle = 'english') {
@@ -2973,16 +2921,20 @@ app.post(
       return;
     }
 
+    const systemPromptParts = [
+      buildChatSystemPrompt({ preferredLocale, replyStyle }),
+    ];
+    if (screenInstruction) {
+      systemPromptParts.push(screenInstruction);
+    }
+    systemPromptParts.push(buildChatFinalInstruction());
+
     const messages = [
       {
         role: 'system',
-        content: buildChatSystemPrompt({ preferredLocale, replyStyle }),
+        content: systemPromptParts.join('\n\n'),
       },
       ...buildChatFewShotMessages(),
-      ...(screenInstruction
-        ? [{ role: 'system', content: screenInstruction }]
-        : []),
-      { role: 'system', content: buildChatFinalInstruction() },
       ...history,
       { role: 'user', content: userMessage },
     ];
@@ -2991,18 +2943,21 @@ app.post(
       let reply = String(payload?.message?.content || '').trim();
 
       if (reply && isLikelyTruncatedReply(reply)) {
+        const retrySystemParts = [
+          buildChatSystemPrompt({ preferredLocale, replyStyle }),
+          'Your previous response was cut off. Regenerate the full answer from scratch in one short paragraph, under 80 words, and end with final punctuation.',
+        ];
+        if (screenInstruction) {
+          retrySystemParts.push(screenInstruction);
+        }
+        retrySystemParts.push(buildChatFinalInstruction());
+
         const retryMessages = [
           {
             role: 'system',
-            content:
-              `${buildChatSystemPrompt({ preferredLocale, replyStyle })}\n` +
-              'Your previous response was cut off. Regenerate the full answer from scratch in one short paragraph, under 80 words, and end with final punctuation.',
+            content: retrySystemParts.join('\n\n'),
           },
           ...buildChatFewShotMessages(),
-          ...(screenInstruction
-            ? [{ role: 'system', content: screenInstruction }]
-            : []),
-          { role: 'system', content: buildChatFinalInstruction() },
           ...history,
           { role: 'user', content: userMessage },
         ];

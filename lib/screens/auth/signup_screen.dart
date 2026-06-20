@@ -4,7 +4,7 @@
 // - Uses SAME dreamy background image
 // - Center logo + title + subtitle
 // - Glass card with 4 fields (name/email/password/confirm)
-// - Peach gradient "Sign up" button
+// - Green gradient "Sign up" button
 // - "Already have an account? Log in"
 // - Divider "or"
 // - Google button with SVG icon
@@ -247,7 +247,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       children: [
                         _InputRow(
                           icon: Icons.person_outline_rounded,
-                          hint: 'Enter your name',
+                          hint: 'Name',
                           controller: _nameC,
                           textInputAction: TextInputAction.next,
                         ),
@@ -362,13 +362,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,
                                   colors: [
-                                    AppColors.primary,
-                                    AppColors.accentCyan,
+                                    Colors.green,
+                                    Colors.lightGreen,
                                   ],
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary.withValues(
+                                    color: Colors.green.withValues(
                                       alpha: isLoading ? 0.1 : 0.35,
                                     ),
                                     blurRadius: isLoading ? 10 : 25,

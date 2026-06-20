@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'backend_api_client.dart';
@@ -173,10 +177,80 @@ class TherapistBookingService {
     String therapistId, {
     required DateTime date,
   }) async {
-    final response = await _apiClient.getJson(
-      '/api/therapists/$therapistId/availability?date=${_dateKey(date)}',
-    );
-    return TherapistAvailabilitySnapshot.fromJson(response);
+    try {
+      final response = await _apiClient.getJson(
+        '/api/therapists/$therapistId/availability?date=${_dateKey(date)}',
+        timeout: const Duration(seconds: 30),
+      );
+      return TherapistAvailabilitySnapshot.fromJson(response);
+    } on TimeoutException {
+      debugPrint(
+        'Backend availability timed out — falling back to Firestore.',
+      );
+      return _fetchSlotsFromFirestore(therapistId, date: date);
+    }
+  }
+
+  Future<TherapistAvailabilitySnapshot> _fetchSlotsFromFirestore(
+    String therapistId, {
+    required DateTime date,
+  }) async {
+    final firestore = FirebaseFirestore.instance;
+    final therapistRef = firestore.collection('therapists').doc(therapistId);
+    final dateKey = _dateKey(date);
+
+    final results = await Future.wait([
+      therapistRef.get(),
+      therapistRef
+          .collection('bookable_slots')
+          .where('dateKey', isEqualTo: dateKey)
+          .get(),
+    ]);
+
+    final therapistSnapshot =
+        results[0] as DocumentSnapshot<Map<String, dynamic>>;
+    final slotsSnapshot =
+        results[1] as QuerySnapshot<Map<String, dynamic>>;
+
+    final therapistData = therapistSnapshot.data() ?? const <String, dynamic>{};
+
+    final slots = slotsSnapshot.docs
+        .map((doc) => <String, dynamic>{...doc.data(), 'slotId': doc.id})
+        .where((slot) => slot['status'] == 'open')
+        .map((slot) {
+          final startAt = slot['startAt'];
+          final endAt = slot['endAt'];
+          return <String, dynamic>{
+            'slotId': slot['slotId'] ?? '',
+            'dateKey': slot['dateKey'] ?? dateKey,
+            'timezone': slot['timezone'] ?? therapistData['timezone'] ?? 'Asia/Karachi',
+            'status': slot['status'] ?? 'open',
+            'startAt': startAt is Timestamp
+                ? startAt.toDate().toUtc().toIso8601String()
+                : (startAt is String ? startAt : DateTime.now().toIso8601String()),
+            'endAt': endAt is Timestamp
+                ? endAt.toDate().toUtc().toIso8601String()
+                : (endAt is String ? endAt : DateTime.now().toIso8601String()),
+          };
+        })
+        .toList();
+
+    return TherapistAvailabilitySnapshot.fromJson(<String, dynamic>{
+      'timezone': therapistData['timezone'] ?? 'Asia/Karachi',
+      'acceptingNewPatients': therapistData['acceptingNewPatients'] ?? true,
+      'sessionDurationMinutes': therapistData['sessionDurationMinutes'] ?? 60,
+      'bufferMinutes': therapistData['bufferMinutes'] ?? 15,
+      'dateKey': dateKey,
+      'nextAvailableAt': therapistData['nextAvailableAt'] is Timestamp
+          ? (therapistData['nextAvailableAt'] as Timestamp)
+                .toDate()
+                .toUtc()
+                .toIso8601String()
+          : therapistData['nextAvailableAt'],
+      'slots': slots,
+      'weeklyRules': const <dynamic>[],
+      'blockedDates': const <dynamic>[],
+    });
   }
 
   TherapistAvailabilitySnapshot? get cachedMyAvailability =>

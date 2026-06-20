@@ -772,6 +772,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final lowerMessage = message.toLowerCase().trim();
 
+    // --- Crisis check ---
+    if (lowerMessage.contains('suicide') ||
+        lowerMessage.contains('kill myself') ||
+        lowerMessage.contains('end my life') ||
+        lowerMessage.contains('self harm') ||
+        lowerMessage.contains('self-harm') ||
+        lowerMessage.contains('hurt myself') ||
+        lowerMessage.contains('want to die') ||
+        lowerMessage.contains('better off dead') ||
+        lowerMessage.contains('end it all')) {
+      return "I'm really sorry you're feeling this way. If you're in immediate danger or might hurt yourself, please call your local emergency number right now.\n\n"
+          "🇺🇸 US/Canada: 988 Suicide & Crisis Lifeline\n"
+          "🇬🇧 UK/ROI: Samaritans 116 123\n"
+          "🇵🇰 Pakistan: Umang 0311-7786264\n\n"
+          "Are you safe right now?";
+    }
+
     // --- Greetings ---
     if (RegExp(
       r'^(hi|hey|hello|hola|howdy|sup|yo|hii+|assalam|salam)',
