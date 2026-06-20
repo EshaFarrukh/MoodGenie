@@ -1,9 +1,23 @@
+# =============================================================================
+# MoodGenie — .gitignore
+# Flutter mobile app · Next.js admin dashboard · Express backend
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# OS-generated files
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# -----------------------------------------------------------------------------
 # Miscellaneous
+# -----------------------------------------------------------------------------
 *.class
 *.log
 *.pyc
 *.swp
-.DS_Store
 .atom/
 .build/
 .buildlog/
@@ -12,22 +26,27 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# -----------------------------------------------------------------------------
+# IDE / Editor
+# -----------------------------------------------------------------------------
+# IntelliJ / Android Studio
 *.iml
 *.ipr
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code (uncomment if not sharing workspace settings)
+# .vscode/
 
-# Flutter/Dart/Pub related
+# -----------------------------------------------------------------------------
+# Flutter / Dart / Pub
+# -----------------------------------------------------------------------------
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
 /build/
@@ -39,33 +58,92 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# DevTools (optional — remove if team shares DevTools prefs)
+devtools_options.yaml
+
+# -----------------------------------------------------------------------------
+# Android
+# -----------------------------------------------------------------------------
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/.gradle/
+**/android/**/GeneratedPluginRegistrant.java
+local.properties
 
-# Custom Exclusions
-/SRS/
-/Proposal/
-FYP Registration Form - SE.pdf
+# -----------------------------------------------------------------------------
+# iOS / macOS — CocoaPods & ephemeral
+# -----------------------------------------------------------------------------
+ios/Pods/
+macos/Pods/
+macos/Flutter/ephemeral/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/Generated.xcconfig
 
-# Environment configuration
+# -----------------------------------------------------------------------------
+# Node.js (backend, admin, firebase_tests)
+# -----------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+*.tsbuildinfo
+
+# -----------------------------------------------------------------------------
+# Next.js (admin dashboard)
+# -----------------------------------------------------------------------------
+**/.next/
+apps/admin/out/
+
+# -----------------------------------------------------------------------------
+# Environment & secrets
+# -----------------------------------------------------------------------------
 .env
+.env.local
+.env.*.local
 backend/.env
 apps/admin/.env.local
+
+# Signing keys & certificates
 android/key.properties
 ios/Flutter/Signing.xcconfig
 macos/Flutter/Signing.xcconfig
 *.jks
 *.keystore
 *.p12
+*.pem
 *.mobileprovision
-*.py
-build_log*.txt
-node_modules/
-**/node_modules/
-**/.next/
-*.tsbuildinfo
-backend/node_modules/
-backend/server.pid
+
+# Firebase service account keys (if ever placed locally)
+**/serviceAccountKey*.json
+**/service-account*.json
+
+# -----------------------------------------------------------------------------
+# Local development state
+# -----------------------------------------------------------------------------
 .local/
+backend/server.pid
+backend/server.log
+
+# Firebase emulator debug logs
+firebase_tests/firestore-debug.log
+firebase_tests/ui-debug.log
+firebase_tests/pubsub-debug.log
+firebase_tests/database-debug.log
+
+# -----------------------------------------------------------------------------
+# Build / analysis logs (temporary debugging output)
+# -----------------------------------------------------------------------------
+build_log*.txt
+ios_build*.log
+analyze*.log
+
+# -----------------------------------------------------------------------------
+# One-off utility scripts (personal, not part of the app)
+# -----------------------------------------------------------------------------
+*.py
+
+# -----------------------------------------------------------------------------
+# Academic / personal documents
+# -----------------------------------------------------------------------------
+/SRS/
+/Proposal/
+FYP Registration Form - SE.pdf
